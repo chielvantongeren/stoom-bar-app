@@ -11,8 +11,15 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'MICE_API_KEY not configured' });
   }
 
+  const { date, search } = req.query;
+
+  // Build query params - filter by date or search term
+  const params = new URLSearchParams({ limit: 50 });
+  if (date) params.append('date', date);
+  if (search) params.append('search', search);
+
   try {
-    const response = await fetch(`${baseUrl}/products?limit=100`, {
+    const response = await fetch(`${baseUrl}/reservations?${params}`, {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Accept': 'application/json',
