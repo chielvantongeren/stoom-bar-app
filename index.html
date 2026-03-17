@@ -482,23 +482,37 @@ async function initialiseerMice() {
 
     const select = document.getElementById('miceResList');
     const loadBtn = document.getElementById('miceLoadBtn');
-    const items = data.data || data.reservations || data || [];
+    const items = data.data || [];
 
     if(Array.isArray(items) && items.length > 0) {
-      select.innerHTML = '<option value="">-- Selecteer boeking --</option>';
-      items.forEach(r => {
+      // Filter op datum van vandaag
+      const vandaagStr = vandaag;
+      const vandaagItems = items.filter(r => {
+        const start = (r.datetime_start || '').slice(0,10);
+        return start === vandaagStr;
+      });
+      const toonItems = vandaagItems.length > 0 ? vandaagItems : items.slice(0,20);
+
+      select.innerHTML = '<option value="">-- Selecteer evenement --</option>';
+      toonItems.forEach(r => {
         const opt = document.createElement('option');
-        opt.value = r.id || r.reservation_id;
-        const naam = r.name || r.title || r.contact_name || r.customer_name || ('Boeking '+opt.value);
-        const tijd = r.start_time || r.date || '';
-        opt.textContent = naam + (tijd ? ' · ' + tijd.slice(11,16) : '');
+        opt.value = r.id;
+        const naam = r.name || ('Evenement '+r.id);
+        const datum = r.datetime_start ? new Date(r.datetime_start).toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
+        const tijd = r.datetime_start ? r.datetime_start.slice(11,16) : '';
+        const type = r.event_type ? r.event_type.name : '';
+        opt.textContent = naam.trim() + (datum?' · '+datum:'') + (tijd?' '+tijd:'') + (type?' ('+type+')':'');
+        opt.dataset.event = JSON.stringify(r);
         select.appendChild(opt);
       });
       select.style.display = '';
       loadBtn.style.display = '';
-      setMiceStatus('ok', `Verbonden · ${items.length} boeking(en) vandaag`);
+      const aantalVandaag = vandaagItems.length;
+      setMiceStatus('ok', aantalVandaag > 0
+        ? `Verbonden · ${aantalVandaag} event(s) vandaag`
+        : `Verbonden · ${toonItems.length} recente events`);
     } else {
-      setMiceStatus('ok', 'Verbonden · Geen boekingen vandaag');
+      setMiceStatus('ok', 'Verbonden · Geen events gevonden');
     }
 
     // Ook prijzen ophalen
@@ -516,32 +530,34 @@ async function laadReservering() {
   const resId = select.value;
   if(!resId) return;
 
-  try {
-    const data = await miceGet(`/reservations?id=${resId}`);
-    const items = data.data || data.reservations || [];
-    const res = Array.isArray(items) ? items.find(r=>(r.id||r.reservation_id)==resId) : data;
+  // Haal event data op uit de option dataset
+  const opt = select.options[select.selectedIndex];
+  let res = null;
+  try { res = JSON.parse(opt.dataset.event || '{}'); } catch(e) {}
 
-    if(res) {
-      // Vul klantgegevens in
-      const naam = res.name || res.title || res.contact_name || res.customer_name || '';
-      const pers = res.guests || res.attendees || res.persons || '';
-      const startTijd = res.start_time ? res.start_time.slice(11,16) : '';
-      const eindTijd = res.end_time ? res.end_time.slice(11,16) : '';
-      const datum = res.date || res.start_time ? (res.date || res.start_time.slice(0,10)) : '';
+  if(res && res.id) {
+    const naam = (res.name || '').trim();
+    const pers = res.guests || '';
+    const startDatum = res.datetime_start ? res.datetime_start.slice(0,10) : '';
+    const startTijd = res.datetime_start ? res.datetime_start.slice(11,16) : '';
+    const eindTijd = res.datetime_end ? res.datetime_end.slice(11,16) : '';
+    const type = res.event_type ? res.event_type.name : '';
 
-      if(naam) document.getElementById('klant').value = naam;
-      if(pers) document.getElementById('pers').value = pers;
-      if(startTijd) document.getElementById('starttijd').value = startTijd;
-      if(eindTijd) document.getElementById('eindtijd').value = eindTijd;
-      if(datum) document.getElementById('datum').value = datum;
+    if(naam) document.getElementById('klant').value = naam;
+    if(pers) document.getElementById('pers').value = pers;
+    if(startDatum) document.getElementById('datum').value = startDatum;
+    if(startTijd) document.getElementById('starttijd').value = startTijd;
+    if(eindTijd) document.getElementById('eindtijd').value = eindTijd;
 
-      miceReservationId = resId;
-      document.getElementById('miceSelectedRes').textContent = naam || resId;
-      document.getElementById('micesSendBtn').disabled = false;
-      showToast('✓ Boeking geladen: ' + (naam||resId));
-    }
-  } catch(err) {
-    showToast('⚠️ Laden mislukt: ' + err.message);
+    miceReservationId = resId;
+    document.getElementById('miceSelectedRes').textContent = naam + (type?' ('+type+')':'');
+    document.getElementById('micesSendBtn').disabled = false;
+
+    // Toon ook in de mice-bar bovenaan
+    const miceSelect = document.getElementById('miceResList');
+    if(miceSelect) miceSelect.style.borderColor = 'var(--gold)';
+
+    showToast('✓ ' + naam + ' geladen');
   }
 }
 
