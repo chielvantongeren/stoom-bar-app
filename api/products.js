@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(`${baseUrl}/products?limit=100`, {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'X-Authorization': `Basic ${apiKey}`,
         'Accept': 'application/json'
       }
     });
