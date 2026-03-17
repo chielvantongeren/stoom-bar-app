@@ -12,22 +12,37 @@ export default async function handler(req, res) {
   }
 
   const date = req.query.date || '';
-  const search = req.query.search || '';
 
-  let url = `${baseUrl}/reservations?limit=50`;
-  if (date) url += `&date=${encodeURIComponent(date)}`;
-  if (search) url += `&search=${encodeURIComponent(search)}`;
+  // Probeer meerdere mogelijke endpoints
+  const endpoints = [
+    `/events?limit=50${date ? '&date='+encodeURIComponent(date) : ''}`,
+    `/reservations?limit=50${date ? '&date='+encodeURIComponent(date) : ''}`,
+    `/quotations?limit=50${date ? '&date='+encodeURIComponent(date) : ''}`,
+    `/bookings?limit=50${date ? '&date='+encodeURIComponent(date) : ''}`,
+  ];
 
-  try {
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Accept': 'application/json'
-      }
-    });
-    const data = await response.json();
-    return res.status(200).json(data);
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
+  const results = {};
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(`${baseUrl}${endpoint}`, {
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Accept': 'application/json'
+        }
+      });
+      const data = await response.json();
+      results[endpoint] = {
+        status: response.status,
+        keys: data ? Object.keys(data) : [],
+        count: Array.isArray(data) ? data.length : 
+               Array.isArray(data?.data) ? data.data.length : 'n/a',
+        sample: JSON.stringify(data).slice(0, 300)
+      };
+    } catch (err) {
+      results[endpoint] = { error: err.message };
+    }
   }
+
+  return res.status(200).json({ debug: true, results });
 }
