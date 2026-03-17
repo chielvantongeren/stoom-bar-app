@@ -12,8 +12,10 @@ export default async function handler(req, res) {
   }
 
   const date = req.query.date || '';
-  let url = `${baseUrl}/events?limit=50`;
-  if (date) url += `&date=${encodeURIComponent(date)}`;
+
+  // Haal events op gesorteerd op datum, filter op datum als meegegeven
+  let url = `${baseUrl}/events?limit=50&order=datetime_start&direction=asc`;
+  if (date) url += `&datetime_start=${encodeURIComponent(date)}`;
 
   try {
     const response = await fetch(url, {
