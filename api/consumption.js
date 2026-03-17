@@ -19,10 +19,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(`${baseUrl}/reservations/${reservation_id}/notes`, {
+    const response = await fetch(`${baseUrl}/events/${reservation_id}/notes`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'X-Authorization': `Basic ${apiKey}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       },
