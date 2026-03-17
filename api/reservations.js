@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const apiKey = process.env.MICE_API_KEY;
-  const baseUrl = 'https://stoom.miceoperations.com/api/v1';
+  const baseUrl = 'https://app.miceoperations.com/api/v1';
 
   if (!apiKey) {
     return res.status(500).json({ error: 'MICE_API_KEY not configured' });
