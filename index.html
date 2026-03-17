@@ -425,15 +425,16 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 // DRINK DATA
 // ============================================================
 const drinks={
-  koffie:    {label:'Koffie / Thee',     emoji:'☕', price:0, miceId:null},
-  fris:      {label:'Frisdrank',          emoji:'🥤', price:0, miceId:null},
-  bier:      {label:'Bier',               emoji:'🍺', price:0, miceId:null},
-  bier00:    {label:'Bier 0.0',           emoji:'🍺', price:0, miceId:null},
-  speciaal:  {label:'Speciaal Bier',      emoji:'🍻', price:0, miceId:null},
-  speciaal00:{label:'Speciaal Bier 0.0',  emoji:'🍻', price:0, miceId:null},
-  wijn:      {label:'Wijn',               emoji:'🍷', price:0, miceId:null},
-  prosecco:  {label:'Prosecco',           emoji:'🥂', price:0, miceId:null},
-  sterke:    {label:'Sterke Drank',       emoji:'🥃', price:0, miceId:null}
+  koffie:    {label:'Koffie / Thee',     emoji:'☕', price:2.75, miceId:null},
+  fris:      {label:'Frisdrank',          emoji:'🥤', price:3.25, miceId:null},
+  bier:      {label:'Pils',               emoji:'🍺', price:2.89, miceId:null},
+  bier00:    {label:'Pils 0.0',           emoji:'🍺', price:3.21, miceId:null},
+  speciaal:  {label:'Speciaal Bier',      emoji:'🍻', price:4.55, miceId:null},
+  speciaal00:{label:'Speciaal Bier 0.0',  emoji:'🍻', price:5.05, miceId:null},
+  wijn:      {label:'Wijn',               emoji:'🍷', price:3.93, miceId:null},
+  prosecco:  {label:'Prosecco',           emoji:'🥂', price:3.10, miceId:null},
+  sterke:    {label:'Sterke Drank',       emoji:'🥃', price:4.55, miceId:null},
+  mix:       {label:'Mixdrankje',         emoji:'🍹', price:7.85, miceId:null}
 };
 
 const counts={};
@@ -547,20 +548,41 @@ async function laadReservering() {
 async function laadPrijzenUitMice() {
   try {
     const data = await miceGet('/products');
-    const items = data.data || data.products || [];
-    if(!Array.isArray(items) || items.length === 0) return;
 
-    // Match MICE producten aan onze drankjes op naam
+    // Gebruik mapped data als die beschikbaar is (nieuwe products.js)
+    if(data.mapped) {
+      let gevonden = 0;
+      Object.entries(data.mapped).forEach(([key, info]) => {
+        if(drinks[key] && info.price > 0) {
+          drinks[key].price = info.price;
+          drinks[key].miceId = info.id;
+          gevonden++;
+        }
+      });
+      if(gevonden > 0) {
+        updatePriceLabels();updateTotals();buildPriceEditor();
+        showToast(`✓ ${gevonden} prijs(en) geladen uit MICE`);
+        return;
+      }
+    }
+
+    // Fallback: zoek zelf in raw data
+    const items = data.raw || data.data || data.products || data || [];
+    if(!Array.isArray(items) || items.length === 0) {
+      showToast('⚠️ Geen producten gevonden in MICE');
+      return;
+    }
+
     const matchMap = {
-      'koffie':     ['koffie','thee','coffee','tea'],
-      'fris':       ['fris','frisdrank','soda','soft drink','cola','spa'],
-      'bier':       ['bier','beer','pils'],
-      'bier00':     ['bier 0','alcoholvrij','0.0','non-alcoholic beer'],
-      'speciaal':   ['speciaal','craft','special beer','speciaalbier'],
-      'speciaal00': ['speciaal 0','speciaal bier 0'],
-      'wijn':       ['wijn','wine','rood','wit','rose','rosé'],
-      'prosecco':   ['prosecco','champagne','bubbel','sparkling'],
-      'sterke':     ['sterke','jenever','whisky','vodka','gin','rum','spirits']
+      'koffie':     ['koffie','thee','water','ronde koffie'],
+      'fris':       ['frisdrank','fris naar keuze','frisdranken'],
+      'bier':       ['pils','bier o.b.v','bier op'],
+      'bier00':     ['bier 0','alcoholvrij bier'],
+      'speciaal':   ['speciaalbier','speciaal bier'],
+      'speciaal00': ['speciaal bier 0','speciaalbier 0'],
+      'wijn':       ['wijn','rode wijn','witte wijn','rosé'],
+      'prosecco':   ['prosecco','champagne','bubbels'],
+      'sterke':     ['sterke drank','jenever','whisky','spirits']
     };
 
     let gevonden = 0;
@@ -568,10 +590,9 @@ async function laadPrijzenUitMice() {
       const pNaam = (product.name || '').toLowerCase();
       const pPrijs = parseFloat(product.price || product.selling_price || 0);
       if(pPrijs <= 0) return;
-
       Object.entries(matchMap).forEach(([key, keywords]) => {
         if(keywords.some(kw => pNaam.includes(kw))) {
-          if(drinks[key].price === 0) {
+          if(drinks[key] && drinks[key].price === 0) {
             drinks[key].price = pPrijs;
             drinks[key].miceId = product.id;
             gevonden++;
@@ -581,13 +602,14 @@ async function laadPrijzenUitMice() {
     });
 
     if(gevonden > 0) {
-      updatePriceLabels();
-      updateTotals();
-      buildPriceEditor();
+      updatePriceLabels();updateTotals();buildPriceEditor();
       showToast(`✓ ${gevonden} prijs(en) geladen uit MICE`);
+    } else {
+      showToast('⚠️ Geen overeenkomsten gevonden — check productnamen');
     }
   } catch(err) {
     console.warn('Prijzen ophalen mislukt:', err.message);
+    showToast('⚠️ Prijzen ophalen mislukt');
   }
 }
 
