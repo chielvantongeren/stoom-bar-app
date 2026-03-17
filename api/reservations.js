@@ -13,11 +13,9 @@ export default async function handler(req, res) {
 
   const date = req.query.date || '';
 
-  // Haal events op gesorteerd op datum, filter op datum als meegegeven
-  let url = `${baseUrl}/events?limit=50&order=datetime_start&direction=asc`;
-  if (date) url += `&datetime_start=${encodeURIComponent(date)}`;
-
   try {
+    // Haal alle events op gesorteerd op datum
+    const url = `${baseUrl}/events?limit=100&order=datetime_start&direction=asc`;
     const response = await fetch(url, {
       headers: {
         'X-Authorization': `Basic ${apiKey}`,
@@ -25,7 +23,23 @@ export default async function handler(req, res) {
       }
     });
     const data = await response.json();
-    return res.status(200).json(data);
+    const items = data.data || [];
+
+    // Filter op datum van vandaag in de server
+    let gefilterd = items;
+    if (date) {
+      gefilterd = items.filter(r => {
+        const start = (r.datetime_start || '').slice(0, 10);
+        return start === date;
+      });
+    }
+
+    return res.status(200).json({
+      data: gefilterd,
+      page: data.page,
+      total_today: gefilterd.length
+    });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
