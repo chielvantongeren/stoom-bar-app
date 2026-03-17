@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "env": {
+    "MICE_API_KEY": "@mice_api_key",
+    "MICE_BASE_URL": "https://stoom.miceoperations.com/api/v1"
+  }
+}

@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="STOOM"/>
+<title>STOOM Evenementen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:#132d4a;}
+:root{
+  --bg:#132d4a;--bg2:#1a3a5c;--bg3:#0e2238;--card:#1e4068;
+  --border:#2a5080;--border2:#1a3550;--gold:#e8a020;
+  --text:#ffffff;--muted:#7aaac8;--dimmed:#3a6080;
+}
+.app{font-family:'Source Sans 3',sans-serif;background:var(--bg);min-height:100vh;color:var(--text);}
+.header{background:var(--bg3);padding:calc(env(safe-area-inset-top,0px) + 10px) 20px 10px;display:flex;align-items:center;gap:14px;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:50;}
+.header-logo{height:52px;width:auto;flex-shrink:0;}
+.header-info{display:flex;flex-direction:column;justify-content:center;}
+.header-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;letter-spacing:3px;color:var(--text);text-transform:uppercase;line-height:1;}
+.header-sub{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-top:2px;}
+.session-bar{background:var(--bg2);padding:10px 16px;display:flex;gap:8px;align-items:flex-end;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.session-bar input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Source Sans 3',sans-serif;flex:1;min-width:100px;}
+.session-bar input::placeholder{color:var(--dimmed);}
+.time-group{display:flex;gap:8px;align-items:flex-end;}
+.time-field{display:flex;flex-direction:column;gap:3px;}
+.time-lbl{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'Oswald',sans-serif;font-weight:500;padding-left:2px;}
+.time-field input{width:92px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 8px;font-size:13px;font-family:'Source Sans 3',sans-serif;color-scheme:dark;}
+
+/* MICE BANNER */
+.mice-bar{background:var(--bg3);border-bottom:1px solid var(--border2);padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mice-status{display:flex;align-items:center;gap:6px;font-size:12px;font-family:'Oswald',sans-serif;font-weight:500;letter-spacing:1px;text-transform:uppercase;}
+.mice-dot{width:8px;height:8px;border-radius:50%;background:var(--dimmed);flex-shrink:0;}
+.mice-dot.ok{background:#2ecc71;}
+.mice-dot.err{background:#e74c3c;}
+.mice-dot.loading{background:var(--gold);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.mice-res-select{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'Source Sans 3',sans-serif;flex:1;min-width:180px;max-width:320px;}
+.mice-load-btn{background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;cursor:pointer;white-space:nowrap;}
+.mice-load-btn:active{transform:scale(.97);}
+
+.tab-bar{display:flex;background:var(--bg3);border-bottom:1px solid var(--border2);overflow-x:auto;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{flex:1;min-width:70px;padding:12px 4px;background:none;border:none;color:var(--dimmed);font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s;}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:var(--bg);}
+.tab-content{display:none;padding:16px 16px 60px;}
+.tab-content.active{display:block;}
+@media(min-width:700px){.tab-content{padding:20px 28px 70px;}}
+.sec-title{font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;margin-top:20px;border-left:3px solid var(--gold);padding-left:8px;}
+.sec-title:first-child{margin-top:0;}
+.drink-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:4px;}
+@media(min-width:700px){.drink-grid{grid-template-columns:repeat(4,1fr);gap:12px;}}
+.drink-btn{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:0;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;-webkit-user-select:none;user-select:none;width:100%;height:130px;}
+@media(min-width:700px){.drink-btn{height:155px;}}
+.drink-btn:active{transform:scale(.94);background:var(--bg2);border-color:var(--gold);}
+.drink-btn.lit{border-color:var(--gold);background:var(--bg2);}
+.d-icon{font-size:30px;line-height:1;}
+@media(min-width:700px){.d-icon{font-size:38px;}}
+.d-name{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:.8px;color:var(--text);text-transform:uppercase;line-height:1.2;padding:0 8px;}
+@media(min-width:700px){.d-name{font-size:16px;}}
+.d-price{font-size:11px;color:var(--muted);font-family:'Source Sans 3',sans-serif;min-height:14px;}
+.d-count{background:var(--gold);color:var(--bg3);border-radius:20px;padding:3px 14px;font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;min-width:44px;display:inline-block;}
+@media(min-width:700px){.d-count{font-size:26px;}}
+.btn-row{display:flex;gap:10px;margin-top:12px;}
+.abtn{flex:1;padding:14px;border-radius:10px;border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;transition:all .15s;-webkit-user-select:none;user-select:none;}
+.abtn.pri{background:var(--gold);color:var(--bg3);}
+.abtn.sec{background:var(--card);border:1px solid var(--border);color:var(--text);}
+.abtn.mail{background:#1a6e3c;color:#fff;border:none;}
+.abtn.mice{background:#2a5080;color:#fff;border:none;}
+.abtn:active{transform:scale(.97);}
+.abtn:disabled{opacity:.4;cursor:not-allowed;}
+.kassa-banner{background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:14px 18px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;}
+.kassa-label{font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
+.kassa-amount{font-family:'Oswald',sans-serif;font-weight:700;font-size:38px;color:var(--gold);}
+.totals-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-top:12px;}
+@media(min-width:700px){.totals-inner{display:grid;grid-template-columns:repeat(2,1fr);gap:0 24px;}}
+.trow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);font-size:14px;}
+.trow:last-child{border-bottom:none;}
+.trow .lbl{color:var(--muted);}
+.trow .val{font-family:'Oswald',sans-serif;font-weight:600;font-size:16px;color:var(--text);}
+.trow .price-val{font-size:12px;color:var(--muted);margin-left:6px;font-family:'Source Sans 3',sans-serif;font-weight:400;}
+.trow.subtotal{grid-column:1/-1;border-top:1px solid var(--border);padding-top:8px;margin-top:2px;}
+.trow.subtotal .lbl{font-size:13px;color:var(--muted);}
+.trow.subtotal .val{font-size:15px;}
+.trow.grand{grid-column:1/-1;background:var(--bg3);margin:6px -16px -14px;padding:10px 16px;border-radius:0 0 12px 12px;}
+.trow.grand .lbl{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);}
+.trow.grand .val{font-size:20px;color:var(--gold);}
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px)+28px);left:50%;transform:translateX(-50%) translateY(80px);background:var(--gold);color:var(--bg3);border-radius:10px;padding:12px 22px;font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;letter-spacing:1px;pointer-events:none;transition:transform .3s;z-index:200;white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.check-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px 0;margin-bottom:10px;overflow:hidden;}
+@media(min-width:700px){.checklist-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}.checklist-grid .check-section{margin-bottom:0;}}
+.cs-header{padding:11px 16px;background:var(--bg3);font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.cs-prog{font-size:12px;font-weight:500;color:var(--dimmed);font-family:'Source Sans 3',sans-serif;letter-spacing:0;text-transform:none;}
+.ci{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border2);cursor:pointer;-webkit-user-select:none;user-select:none;}
+.ci:last-child{border-bottom:none;}
+.ci:active{background:var(--bg2);}
+.cbox{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--bg3);}
+.cbox.chk{background:var(--gold);border-color:var(--gold);}
+.cbox.chk::after{content:'';width:13px;height:8px;border-left:2.5px solid var(--bg3);border-bottom:2.5px solid var(--bg3);transform:rotate(-45deg) translateY(-2px);display:block;}
+.clbl{font-size:15px;color:#c8dce8;flex:1;}
+.clbl.done{text-decoration:line-through;color:var(--dimmed);}
+.mail-info{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--dimmed);text-align:center;line-height:1.6;}
+.mail-info span{color:var(--gold);}
+.undo-wrap{display:flex;justify-content:flex-end;margin-top:8px;}
+.undo-btn{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;font-family:'Oswald',sans-serif;font-weight:500;letter-spacing:1px;text-transform:uppercase;padding:7px 14px;cursor:pointer;}
+@media(min-width:700px){
+  .af-layout{display:grid;grid-template-columns:1fr 1fr;gap:0 28px;align-items:start;}
+  .af-summary-section,.af-actions{grid-column:1/-1;}
+}
+.af-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.af-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border2);}
+.af-row:last-child{border-bottom:none;}
+.af-label{flex:1;}
+.af-label strong{display:block;font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;letter-spacing:.5px;color:var(--text);text-transform:uppercase;}
+.af-label small{font-size:11px;color:var(--dimmed);}
+.toggle{width:50px;height:28px;background:var(--border);border-radius:14px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;border:none;-webkit-user-select:none;user-select:none;}
+.toggle.on{background:var(--gold);}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left .2s;}
+.toggle.on::after{left:25px;}
+.stepper{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.step-btn{width:34px;height:34px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--gold);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;-webkit-user-select:none;user-select:none;}
+.step-val{font-family:'Oswald',sans-serif;font-weight:700;font-size:22px;color:var(--text);min-width:26px;text-align:center;}
+.af-snack-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:#c8dce8;font-family:'Source Sans 3',sans-serif;font-size:14px;padding:9px 10px;margin-top:8px;}
+.af-snack-input::placeholder{color:var(--dimmed);}
+.af-notitie{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:#c8dce8;font-family:'Source Sans 3',sans-serif;font-size:14px;padding:9px 10px;resize:none;min-height:80px;}
+.af-notitie::placeholder{color:var(--dimmed);}
+.af-summary{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.af-sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border2);font-size:13px;}
+.af-sum-row:last-child{border-bottom:none;}
+.af-sum-lbl{color:var(--muted);}
+.af-sum-val{font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;}
+.af-sum-val.on{color:var(--gold);}
+.af-sum-val.off{color:var(--dimmed);}
+.price-edit-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.price-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border2);}
+.price-row:last-child{border-bottom:none;}
+.price-emoji{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+.price-name{flex:1;font-size:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.price-input{width:72px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 8px;font-size:14px;font-family:'Source Sans 3',sans-serif;text-align:right;}
+.mice-info-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:14px;}
+.mice-info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);font-size:13px;}
+.mice-info-row:last-child{border-bottom:none;}
+.mice-info-lbl{color:var(--muted);}
+.mice-info-val{font-family:'Oswald',sans-serif;font-weight:600;color:var(--text);font-size:14px;}
+.info-block{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--muted);line-height:1.7;}
+.info-block strong{color:var(--text);font-family:'Oswald',sans-serif;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.step-num{display:inline-flex;width:20px;height:20px;background:var(--gold);color:var(--bg3);border-radius:50%;font-family:'Oswald',sans-serif;font-weight:700;font-size:11px;align-items:center;justify-content:center;margin-right:6px;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <img src="data:image/png;base64,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" alt="STOOM" class="header-logo"/>
+    <div class="header-info">
+      <div class="header-title">STOOM</div>
+      <div class="header-sub">Apeldoorn · Evenementen</div>
+    </div>
+  </div>
+
+  <div class="session-bar">
+    <input type="text" id="klant" placeholder="Klantnaam / evenement..." autocomplete="off"/>
+    <input type="number" id="pers" placeholder="Pers." min="1" style="max-width:68px;"/>
+    <input type="date" id="datum" style="max-width:155px;color-scheme:dark;"/>
+    <div class="time-group">
+      <div class="time-field">
+        <span class="time-lbl">Start</span>
+        <input type="time" id="starttijd"/>
+      </div>
+      <div class="time-field">
+        <span class="time-lbl">Eind</span>
+        <input type="time" id="eindtijd"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- MICE STATUS BAR -->
+  <div class="mice-bar">
+    <div class="mice-status">
+      <div class="mice-dot loading" id="micesDot"></div>
+      <span id="miceStatusText">MICE verbinden...</span>
+    </div>
+    <select class="mice-res-select" id="miceResList" style="display:none;">
+      <option value="">-- Selecteer boeking --</option>
+    </select>
+    <button class="mice-load-btn" id="miceLoadBtn" onclick="laadReservering()" style="display:none;">↓ Laden</button>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('drinks')">🍺 Drankjes</button>
+    <button class="tab-btn" onclick="switchTab('afspraken')">📋 Afspraken</button>
+    <button class="tab-btn" onclick="switchTab('checklist')">✅ Checklist</button>
+    <button class="tab-btn" onclick="switchTab('prijzen')">💶 Prijzen</button>
+    <button class="tab-btn" onclick="switchTab('mice')">🔗 MICE</button>
+  </div>
+
+  <!-- DRINKS TAB -->
+  <div class="tab-content active" id="tab-drinks">
+    <div class="sec-title" style="margin-top:0;">Warme dranken &amp; Fris</div>
+    <div class="drink-grid">
+      <button class="drink-btn" onclick="tap('koffie')">
+        <span class="d-icon">☕</span><span class="d-name">Koffie / Thee</span>
+        <span class="d-price" id="pr-koffie"></span>
+        <span class="d-count" id="cnt-koffie">0</span>
+      </button>
+      <button class="drink-btn" onclick="tap('fris')">
+        <span class="d-icon">🥤</span><span class="d-name">Frisdrank</span>
+        <span class="d-price" id="pr-fris"></span>
+        <span class="d-count" id="cnt-fris">0</span>
+      </button>
+    </div>
+    <div class="sec-title">Bier</div>
+    <div class="drink-grid">
+      <button class="drink-btn" onclick="tap('bier')">
+        <span class="d-icon">🍺</span><span class="d-name">Bier</span>
+        <span class="d-price" id="pr-bier"></span>
+        <span class="d-count" id="cnt-bier">0</span>
+      </button>
+      <button class="drink-btn" onclick="tap('bier00')">
+        <span class="d-icon">🍺</span><span class="d-name">Bier 0.0</span>
+        <span class="d-price" id="pr-bier00"></span>
+        <span class="d-count" id="cnt-bier00">0</span>
+      </button>
+      <button class="drink-btn" onclick="tap('speciaal')">
+        <span class="d-icon">🍻</span><span class="d-name">Speciaal Bier</span>
+        <span class="d-price" id="pr-speciaal"></span>
+        <span class="d-count" id="cnt-speciaal">0</span>
+      </button>
+      <button class="drink-btn" onclick="tap('speciaal00')">
+        <span class="d-icon">🍻</span><span class="d-name">Speciaal Bier 0.0</span>
+        <span class="d-price" id="pr-speciaal00"></span>
+        <span class="d-count" id="cnt-speciaal00">0</span>
+      </button>
+    </div>
+    <div class="sec-title">Wijn, Bubbels &amp; Sterke Drank</div>
+    <div class="drink-grid">
+      <button class="drink-btn" onclick="tap('wijn')">
+        <span class="d-icon">🍷</span><span class="d-name">Wijn</span>
+        <span class="d-price" id="pr-wijn"></span>
+        <span class="d-count" id="cnt-wijn">0</span>
+      </button>
+      <button class="drink-btn" onclick="tap('prosecco')">
+        <span class="d-icon">🥂</span><span class="d-name">Prosecco</span>
+        <span class="d-price" id="pr-prosecco"></span>
+        <span class="d-count" id="cnt-prosecco">0</span>
+      </button>
+      <button class="drink-btn" onclick="tap('sterke')">
+        <span class="d-icon">🥃</span><span class="d-name">Sterke Drank</span>
+        <span class="d-price" id="pr-sterke"></span>
+        <span class="d-count" id="cnt-sterke">0</span>
+      </button>
+    </div>
+    <div class="undo-wrap">
+      <button class="undo-btn" onclick="undoLast()">↩ Ongedaan maken</button>
+    </div>
+    <div class="kassa-banner" id="kassaBanner" style="display:none;">
+      <div>
+        <div class="kassa-label">💶 Kassatotaal</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="kassaAantal"></div>
+      </div>
+      <div class="kassa-amount" id="kassaAmount">€ 0,00</div>
+    </div>
+    <div class="totals-card"><div class="totals-inner" id="totalsRows"></div></div>
+    <div class="btn-row">
+      <button class="abtn mice" id="micesSendBtn" onclick="stuurNaarMice()" disabled>🔗 Opslaan in MICE</button>
+    </div>
+    <div class="btn-row">
+      <button class="abtn mail" onclick="stuurEmail()">✉️ Stuur naar STOOM</button>
+    </div>
+    <div class="btn-row">
+      <button class="abtn pri" onclick="exportTxt()">📋 Download .txt</button>
+      <button class="abtn sec" onclick="resetAll()">↺ Reset</button>
+    </div>
+    <div class="mail-info">Verstuurd naar <span>info@stoom-apeldoorn.nl</span></div>
+  </div>
+
+  <!-- AFSPRAKEN TAB -->
+  <div class="tab-content" id="tab-afspraken">
+    <div class="af-summary-section">
+      <div class="sec-title" style="margin-top:0;">Overzicht afspraken</div>
+      <div class="af-summary" id="af-summary"></div>
+    </div>
+    <div class="sec-title">Afspraken bewerken</div>
+    <div class="af-layout">
+      <div>
+        <div class="af-card">
+          <div class="af-row">
+            <div class="af-label"><strong>🥂 Prosecco welkomst</strong><small>Welkomstdrankje bij aankomst</small></div>
+            <button class="toggle" id="tog-prosecco" onclick="toggleAf('prosecco')"></button>
+          </div>
+          <div class="af-row">
+            <div class="af-label"><strong>🥜 Nootjes / Zoutjes</strong><small>Op tafel bij aanvang</small></div>
+            <button class="toggle" id="tog-nootjes" onclick="toggleAf('nootjes')"></button>
+          </div>
+          <div class="af-row">
+            <div class="af-label"><strong>🫒 Olijven / Kaas</strong><small>Potjes op tafel</small></div>
+            <button class="toggle" id="tog-olijven" onclick="toggleAf('olijven')"></button>
+          </div>
+        </div>
+        <div class="af-card">
+          <div class="af-row">
+            <div class="af-label"><strong>🫙 Bittergarnituur</strong><small>Aantal rondes</small></div>
+            <div class="stepper">
+              <button class="step-btn" onclick="stepAf('bitter',-1)">−</button>
+              <span class="step-val" id="step-bitter">0</span>
+              <button class="step-btn" onclick="stepAf('bitter',1)">+</button>
+            </div>
+          </div>
+          <div class="af-row">
+            <div class="af-label"><strong>🍽️ Koude luxe hapjes</strong><small>Aantal rondes</small></div>
+            <div class="stepper">
+              <button class="step-btn" onclick="stepAf('koude',-1)">−</button>
+              <span class="step-val" id="step-koude">0</span>
+              <button class="step-btn" onclick="stepAf('koude',1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="af-card">
+          <div class="af-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
+            <div style="display:flex;width:100%;align-items:center;gap:12px;">
+              <div class="af-label"><strong>🌮 Eindsnack</strong><small>Omschrijving eindsnack</small></div>
+              <button class="toggle" id="tog-eindsnack" onclick="toggleAf('eindsnack')"></button>
+            </div>
+            <input class="af-snack-input" id="eindsnack-omschrijving" type="text" placeholder="Bijv. bitterballen, broodjes pulled pork..." oninput="updateSummary()" autocomplete="off"/>
+          </div>
+        </div>
+        <div class="af-card">
+          <div class="af-row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+            <div class="af-label"><strong>📝 Overige notities</strong><small>Allergieën, dieetwensen, bijzonderheden</small></div>
+            <textarea class="af-notitie" id="notities" placeholder="Vrij tekstveld voor overige afspraken..." oninput="updateSummary()"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="af-actions">
+        <div class="btn-row">
+          <button class="abtn mail" onclick="stuurEmailAfspraken()">✉️ Afspraken mailen</button>
+        </div>
+        <div class="mail-info">Stuurt afspraken naar <span>info@stoom-apeldoorn.nl</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST TAB -->
+  <div class="tab-content" id="tab-checklist">
+    <div class="checklist-grid" id="checklistContainer"></div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="abtn mail" onclick="stuurEmailChecklist()">✉️ Checklist mailen</button>
+      <button class="abtn sec" onclick="resetChecklist()">↺ Reset</button>
+    </div>
+    <div class="mail-info">Stuurt checklist naar <span>info@stoom-apeldoorn.nl</span></div>
+  </div>
+
+  <!-- PRIJZEN TAB -->
+  <div class="tab-content" id="tab-prijzen">
+    <div class="sec-title" style="margin-top:0;">Prijzen per product</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Prijzen worden automatisch opgehaald uit MICE Operations. Je kunt ze hier ook handmatig aanpassen.</div>
+    <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
+      <button class="abtn mice" onclick="laadPrijzenUitMice()">🔄 Prijzen ophalen uit MICE</button>
+    </div>
+    <div class="price-edit-card" id="priceEditContainer"></div>
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="abtn pri" onclick="savePrices()">✓ Prijzen opslaan</button>
+      <button class="abtn sec" onclick="resetPrices()">↺ Reset</button>
+    </div>
+  </div>
+
+  <!-- MICE TAB -->
+  <div class="tab-content" id="tab-mice">
+    <div class="sec-title" style="margin-top:0;">MICE Operations koppeling</div>
+
+    <div class="mice-info-card" id="miceConnectInfo">
+      <div class="mice-info-row">
+        <span class="mice-info-lbl">Account</span>
+        <span class="mice-info-val">stoom.miceoperations.com</span>
+      </div>
+      <div class="mice-info-row">
+        <span class="mice-info-lbl">Status</span>
+        <span class="mice-info-val" id="miceStatusDetail">Verbinden...</span>
+      </div>
+      <div class="mice-info-row">
+        <span class="mice-info-lbl">Geselecteerde boeking</span>
+        <span class="mice-info-val" id="miceSelectedRes">Geen</span>
+      </div>
+    </div>
+
+    <div class="info-block">
+      <strong>Hoe werkt de koppeling?</strong><br><br>
+      <span class="step-num">1</span> De app haalt automatisch de boekingen van vandaag op uit MICE.<br><br>
+      <span class="step-num">2</span> Selecteer de juiste boeking in de balk bovenaan — klantgegevens worden ingevuld.<br><br>
+      <span class="step-num">3</span> Na het feest: tik op <strong>"Opslaan in MICE"</strong> op het drankjes-tabblad — het verbruiksoverzicht wordt als notitie opgeslagen bij de boeking in MICE.<br><br>
+      <span class="step-num">4</span> Prijzen worden automatisch gesynchroniseerd via het Prijzen-tabblad.
+    </div>
+
+    <div class="sec-title">API instellingen</div>
+    <div class="info-block" style="margin-bottom:8px;">
+      De API key wordt beheerd via Vercel — veilig opgeslagen als omgevingsvariabele, nooit zichtbaar in de app. Stel hem in via:<br><br>
+      <strong>Vercel → jouw project → Settings → Environment Variables</strong><br><br>
+      Variabele naam: <strong style="color:var(--gold);">MICE_API_KEY</strong>
+    </div>
+
+    <div class="btn-row">
+      <button class="abtn mice" onclick="testMiceVerbinding()">🔌 Test verbinding</button>
+      <button class="abtn sec" onclick="laadVandaagBoekingen()">📅 Boekingen vandaag</button>
+    </div>
+    <div id="miceTestResult" style="margin-top:10px;font-size:13px;color:var(--muted);"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIGURATIE — pas dit aan naar jouw Vercel URL na deployment
+// ============================================================
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3000/api'
+  : '/api';
+
+// ============================================================
+// DRINK DATA
+// ============================================================
+const drinks={
+  koffie:    {label:'Koffie / Thee',     emoji:'☕', price:0, miceId:null},
+  fris:      {label:'Frisdrank',          emoji:'🥤', price:0, miceId:null},
+  bier:      {label:'Bier',               emoji:'🍺', price:0, miceId:null},
+  bier00:    {label:'Bier 0.0',           emoji:'🍺', price:0, miceId:null},
+  speciaal:  {label:'Speciaal Bier',      emoji:'🍻', price:0, miceId:null},
+  speciaal00:{label:'Speciaal Bier 0.0',  emoji:'🍻', price:0, miceId:null},
+  wijn:      {label:'Wijn',               emoji:'🍷', price:0, miceId:null},
+  prosecco:  {label:'Prosecco',           emoji:'🥂', price:0, miceId:null},
+  sterke:    {label:'Sterke Drank',       emoji:'🥃', price:0, miceId:null}
+};
+
+const counts={};
+Object.keys(drinks).forEach(k=>counts[k]=0);
+let hist=[];
+const af={prosecco:false,nootjes:false,olijven:false,bitter:0,koude:0,eindsnack:false};
+let miceReservationId = null;
+let miceConnected = false;
+
+// ============================================================
+// MICE API FUNCTIES
+// ============================================================
+async function miceGet(endpoint) {
+  const res = await fetch(`${API_BASE}${endpoint}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function micePost(endpoint, body) {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function setMiceStatus(status, text) {
+  const dot = document.getElementById('micesDot');
+  const statusText = document.getElementById('miceStatusText');
+  const detail = document.getElementById('miceStatusDetail');
+  dot.className = 'mice-dot ' + status;
+  if(statusText) statusText.textContent = text;
+  if(detail) detail.textContent = text;
+}
+
+async function initialiseerMice() {
+  setMiceStatus('loading', 'MICE verbinden...');
+  try {
+    const vandaag = new Date().toISOString().split('T')[0];
+    const data = await miceGet(`/reservations?date=${vandaag}`);
+    miceConnected = true;
+    setMiceStatus('ok', 'Verbonden ✓');
+
+    const select = document.getElementById('miceResList');
+    const loadBtn = document.getElementById('miceLoadBtn');
+    const items = data.data || data.reservations || data || [];
+
+    if(Array.isArray(items) && items.length > 0) {
+      select.innerHTML = '<option value="">-- Selecteer boeking --</option>';
+      items.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.id || r.reservation_id;
+        const naam = r.name || r.title || r.contact_name || r.customer_name || ('Boeking '+opt.value);
+        const tijd = r.start_time || r.date || '';
+        opt.textContent = naam + (tijd ? ' · ' + tijd.slice(11,16) : '');
+        select.appendChild(opt);
+      });
+      select.style.display = '';
+      loadBtn.style.display = '';
+      setMiceStatus('ok', `Verbonden · ${items.length} boeking(en) vandaag`);
+    } else {
+      setMiceStatus('ok', 'Verbonden · Geen boekingen vandaag');
+    }
+
+    // Ook prijzen ophalen
+    laadPrijzenUitMice();
+
+  } catch(err) {
+    miceConnected = false;
+    setMiceStatus('err', 'Niet verbonden — check API key');
+    console.warn('MICE init fout:', err.message);
+  }
+}
+
+async function laadReservering() {
+  const select = document.getElementById('miceResList');
+  const resId = select.value;
+  if(!resId) return;
+
+  try {
+    const data = await miceGet(`/reservations?id=${resId}`);
+    const items = data.data || data.reservations || [];
+    const res = Array.isArray(items) ? items.find(r=>(r.id||r.reservation_id)==resId) : data;
+
+    if(res) {
+      // Vul klantgegevens in
+      const naam = res.name || res.title || res.contact_name || res.customer_name || '';
+      const pers = res.guests || res.attendees || res.persons || '';
+      const startTijd = res.start_time ? res.start_time.slice(11,16) : '';
+      const eindTijd = res.end_time ? res.end_time.slice(11,16) : '';
+      const datum = res.date || res.start_time ? (res.date || res.start_time.slice(0,10)) : '';
+
+      if(naam) document.getElementById('klant').value = naam;
+      if(pers) document.getElementById('pers').value = pers;
+      if(startTijd) document.getElementById('starttijd').value = startTijd;
+      if(eindTijd) document.getElementById('eindtijd').value = eindTijd;
+      if(datum) document.getElementById('datum').value = datum;
+
+      miceReservationId = resId;
+      document.getElementById('miceSelectedRes').textContent = naam || resId;
+      document.getElementById('micesSendBtn').disabled = false;
+      showToast('✓ Boeking geladen: ' + (naam||resId));
+    }
+  } catch(err) {
+    showToast('⚠️ Laden mislukt: ' + err.message);
+  }
+}
+
+async function laadPrijzenUitMice() {
+  try {
+    const data = await miceGet('/products');
+    const items = data.data || data.products || [];
+    if(!Array.isArray(items) || items.length === 0) return;
+
+    // Match MICE producten aan onze drankjes op naam
+    const matchMap = {
+      'koffie':     ['koffie','thee','coffee','tea'],
+      'fris':       ['fris','frisdrank','soda','soft drink','cola','spa'],
+      'bier':       ['bier','beer','pils'],
+      'bier00':     ['bier 0','alcoholvrij','0.0','non-alcoholic beer'],
+      'speciaal':   ['speciaal','craft','special beer','speciaalbier'],
+      'speciaal00': ['speciaal 0','speciaal bier 0'],
+      'wijn':       ['wijn','wine','rood','wit','rose','rosé'],
+      'prosecco':   ['prosecco','champagne','bubbel','sparkling'],
+      'sterke':     ['sterke','jenever','whisky','vodka','gin','rum','spirits']
+    };
+
+    let gevonden = 0;
+    items.forEach(product => {
+      const pNaam = (product.name || '').toLowerCase();
+      const pPrijs = parseFloat(product.price || product.selling_price || 0);
+      if(pPrijs <= 0) return;
+
+      Object.entries(matchMap).forEach(([key, keywords]) => {
+        if(keywords.some(kw => pNaam.includes(kw))) {
+          if(drinks[key].price === 0) {
+            drinks[key].price = pPrijs;
+            drinks[key].miceId = product.id;
+            gevonden++;
+          }
+        }
+      });
+    });
+
+    if(gevonden > 0) {
+      updatePriceLabels();
+      updateTotals();
+      buildPriceEditor();
+      showToast(`✓ ${gevonden} prijs(en) geladen uit MICE`);
+    }
+  } catch(err) {
+    console.warn('Prijzen ophalen mislukt:', err.message);
+  }
+}
+
+async function stuurNaarMice() {
+  if(!miceReservationId) {
+    showToast('⚠️ Selecteer eerst een boeking');
+    return;
+  }
+
+  const {body} = buildBody();
+  const btn = document.getElementById('micesSendBtn');
+  btn.textContent = '⏳ Bezig...';
+  btn.disabled = true;
+
+  try {
+    await micePost('/consumption', {
+      reservation_id: miceReservationId,
+      note: body
+    });
+    showToast('✓ Opgeslagen in MICE!');
+    btn.textContent = '✓ Opgeslagen in MICE';
+  } catch(err) {
+    showToast('⚠️ MICE fout: ' + err.message);
+    btn.textContent = '🔗 Opslaan in MICE';
+    btn.disabled = false;
+  }
+}
+
+async function testMiceVerbinding() {
+  const result = document.getElementById('miceTestResult');
+  result.textContent = 'Verbinding testen...';
+  result.style.color = 'var(--muted)';
+  try {
+    const data = await miceGet('/products');
+    const count = (data.data||data.products||[]).length;
+    result.textContent = `✓ Verbinding OK · ${count} producten gevonden in MICE`;
+    result.style.color = '#2ecc71';
+    setMiceStatus('ok', 'Verbonden ✓');
+  } catch(err) {
+    result.textContent = `✗ Fout: ${err.message} — Controleer of MICE_API_KEY is ingesteld in Vercel`;
+    result.style.color = '#e74c3c';
+    setMiceStatus('err', 'Niet verbonden');
+  }
+}
+
+async function laadVandaagBoekingen() {
+  const result = document.getElementById('miceTestResult');
+  result.textContent = 'Boekingen ophalen...';
+  try {
+    const vandaag = new Date().toISOString().split('T')[0];
+    const data = await miceGet(`/reservations?date=${vandaag}`);
+    const items = data.data || data.reservations || data || [];
+    if(Array.isArray(items)) {
+      result.textContent = `✓ ${items.length} boeking(en) gevonden voor vandaag`;
+      result.style.color = '#2ecc71';
+    } else {
+      result.textContent = 'Onverwacht antwoord van MICE';
+      result.style.color = 'var(--muted)';
+    }
+  } catch(err) {
+    result.textContent = `✗ Fout: ${err.message}`;
+    result.style.color = '#e74c3c';
+  }
+}
+
+// ============================================================
+// DRINK FUNCTIES
+// ============================================================
+function fmt(p){return p>0?'€'+p.toFixed(2).replace('.',','):'';}
+function fmtFull(p){return'€ '+p.toFixed(2).replace('.',',');}
+
+function updatePriceLabels(){
+  Object.keys(drinks).forEach(k=>{
+    const el=document.getElementById('pr-'+k);
+    if(el)el.textContent=fmt(drinks[k].price);
+  });
+}
+
+function tap(key){
+  counts[key]++;hist.push(key);
+  document.getElementById('cnt-'+key).textContent=counts[key];
+  const btn=document.getElementById('cnt-'+key).closest('.drink-btn');
+  btn.classList.add('lit');setTimeout(()=>btn.classList.remove('lit'),300);
+  updateTotals();
+  showToast(drinks[key].emoji+' '+drinks[key].label+' +1');
+}
+
+function undoLast(){
+  if(!hist.length)return;
+  const key=hist.pop();
+  counts[key]=Math.max(0,counts[key]-1);
+  document.getElementById('cnt-'+key).textContent=counts[key];
+  updateTotals();showToast('↩ Ongedaan: '+drinks[key].label);
+}
+
+function updateTotals(){
+  const rows=document.getElementById('totalsRows');
+  let html='',total=0,bedrag=0;
+  const hasPrices=Object.keys(drinks).some(k=>drinks[k].price>0);
+  Object.keys(drinks).forEach(k=>{
+    if(counts[k]>0){
+      const sub=counts[k]*drinks[k].price;
+      const prTxt=hasPrices&&drinks[k].price>0?` <span class="price-val">${fmtFull(sub)}</span>`:'';
+      html+=`<div class="trow"><span class="lbl">${drinks[k].emoji} ${drinks[k].label}</span><span class="val">${counts[k]}x${prTxt}</span></div>`;
+      total+=counts[k];bedrag+=sub;
+    }
+  });
+  if(total>0){
+    if(hasPrices&&bedrag>0) html+=`<div class="trow subtotal"><span class="lbl">Subtotaal</span><span class="val">${fmtFull(bedrag)}</span></div>`;
+    html+=`<div class="trow grand"><span class="lbl">Totaal consumpties</span><span class="val">${total}</span></div>`;
+  } else {
+    html='<div style="color:var(--dimmed);font-size:14px;text-align:center;padding:12px 0;">Nog niets geregistreerd</div>';
+  }
+  rows.innerHTML=html;
+  const banner=document.getElementById('kassaBanner');
+  if(hasPrices&&bedrag>0){
+    banner.style.display='flex';
+    document.getElementById('kassaAmount').textContent=fmtFull(bedrag);
+    document.getElementById('kassaAantal').textContent=total+' consumpties';
+  } else {
+    banner.style.display='none';
+  }
+}
+
+function buildPriceEditor(){
+  let html='';
+  Object.keys(drinks).forEach(k=>{
+    html+=`<div class="price-row">
+      <span class="price-emoji">${drinks[k].emoji}</span>
+      <span class="price-name">${drinks[k].label}</span>
+      <span style="color:var(--muted);font-size:13px;">€</span>
+      <input class="price-input" type="number" id="pinp-${k}" min="0" step="0.10" placeholder="0.00" value="${drinks[k].price>0?drinks[k].price.toFixed(2):''}"/>
+    </div>`;
+  });
+  document.getElementById('priceEditContainer').innerHTML=html;
+}
+
+function savePrices(){
+  Object.keys(drinks).forEach(k=>{
+    drinks[k].price=parseFloat(document.getElementById('pinp-'+k).value)||0;
+  });
+  updatePriceLabels();updateTotals();
+  showToast('✓ Prijzen opgeslagen!');
+}
+
+function resetPrices(){
+  Object.keys(drinks).forEach(k=>{
+    drinks[k].price=0;
+    const el=document.getElementById('pinp-'+k);
+    if(el)el.value='';
+  });
+  updatePriceLabels();updateTotals();
+  showToast('Prijzen gereset');
+}
+
+function toggleAf(key){
+  af[key]=!af[key];
+  const tog=document.getElementById('tog-'+key);
+  if(tog)tog.classList.toggle('on',af[key]);
+  if(key==='eindsnack'){
+    const inp=document.getElementById('eindsnack-omschrijving');
+    inp.style.opacity=af[key]?'1':'0.4';inp.disabled=!af[key];
+  }
+  updateSummary();
+}
+
+function stepAf(key,delta){
+  af[key]=Math.max(0,af[key]+delta);
+  document.getElementById('step-'+key).textContent=af[key];
+  updateSummary();
+}
+
+function updateSummary(){
+  const eindOmschr=document.getElementById('eindsnack-omschrijving').value;
+  const notities=document.getElementById('notities').value;
+  const rows=[
+    {lbl:'🥂 Prosecco welkomst',val:af.prosecco?'Ja':'Nee',on:af.prosecco},
+    {lbl:'🥜 Nootjes / Zoutjes',val:af.nootjes?'Ja':'Nee',on:af.nootjes},
+    {lbl:'🫒 Olijven / Kaas',val:af.olijven?'Ja':'Nee',on:af.olijven},
+    {lbl:'🫙 Bittergarnituur',val:af.bitter+' ronde'+(af.bitter!==1?'s':''),on:af.bitter>0},
+    {lbl:'🍽️ Koude luxe hapjes',val:af.koude+' ronde'+(af.koude!==1?'s':''),on:af.koude>0},
+    {lbl:'🌮 Eindsnack',val:af.eindsnack?(eindOmschr||'Ja'):'Nee',on:af.eindsnack},
+  ];
+  if(notities)rows.push({lbl:'📝 Notities',val:notities,on:true});
+  let html='';
+  rows.forEach(r=>{html+=`<div class="af-sum-row"><span class="af-sum-lbl">${r.lbl}</span><span class="af-sum-val ${r.on?'on':'off'}">${r.val}</span></div>`;});
+  document.getElementById('af-summary').innerHTML=html||'<div style="color:var(--dimmed);font-size:14px;">Nog geen afspraken ingesteld</div>';
+}
+
+function getSession(){
+  const klant=document.getElementById('klant').value||'Niet opgegeven';
+  const pers=document.getElementById('pers').value||'?';
+  const dv=document.getElementById('datum').value;
+  const datum=dv?new Date(dv).toLocaleDateString('nl-NL'):new Date().toLocaleDateString('nl-NL');
+  const start=document.getElementById('starttijd').value||'–';
+  const eind=document.getElementById('eindtijd').value||'–';
+  return{klant,pers,datum,start,eind};
+}
+
+function buildBody(){
+  const{klant,pers,datum,start,eind}=getSession();
+  const eindOmschr=document.getElementById('eindsnack-omschrijving').value;
+  const notities=document.getElementById('notities').value;
+  const hasPrices=Object.keys(drinks).some(k=>drinks[k].price>0);
+  let body=`STOOM APELDOORN - VERBRUIKSOVERZICHT\n====================================\n`;
+  body+=`Klant: ${klant}\nPersonen: ${pers}\nDatum: ${datum}  Start: ${start}  Eind: ${eind}\n`;
+  body+=`\n--- AFSPRAKEN ---\n`;
+  body+=`Prosecco: ${af.prosecco?'Ja':'Nee'} | Nootjes: ${af.nootjes?'Ja':'Nee'} | Olijven/Kaas: ${af.olijven?'Ja':'Nee'}\n`;
+  body+=`Bittergarnituur: ${af.bitter}x | Koude hapjes: ${af.koude}x | Eindsnack: ${af.eindsnack?(eindOmschr||'Ja'):'Nee'}\n`;
+  if(notities)body+=`Notities: ${notities}\n`;
+  body+=`\n--- VERBRUIK ---\n`;
+  let total=0,bedrag=0;
+  Object.keys(drinks).forEach(k=>{
+    if(counts[k]>0){
+      const sub=counts[k]*drinks[k].price;
+      body+=`${drinks[k].label}: ${counts[k]}x${hasPrices&&drinks[k].price>0?' ('+fmtFull(sub)+')':''  }\n`;
+      total+=counts[k];bedrag+=sub;
+    }
+  });
+  if(total===0)body+='(Nog geen consumpties)\n';
+  body+=`------------------------------------\nTOTAAL: ${total} consumpties\n`;
+  if(hasPrices&&bedrag>0)body+=`KASSATOTAAL: ${fmtFull(bedrag)}\n`;
+  body+=`\nVia STOOM Evenementen App`;
+  return{body,klant,datum};
+}
+
+function stuurEmail(){
+  const{body,klant,datum}=buildBody();
+  window.location.href=`mailto:info@stoom-apeldoorn.nl?subject=${encodeURIComponent('Verbruiksoverzicht – '+klant+' – '+datum)}&body=${encodeURIComponent(body)}`;
+  showToast('✉️ E-mailapp wordt geopend...');
+}
+
+function stuurEmailAfspraken(){
+  const{klant,datum,start,eind}=getSession();
+  const eindOmschr=document.getElementById('eindsnack-omschrijving').value;
+  const notities=document.getElementById('notities').value;
+  let body=`STOOM APELDOORN - AFSPRAKEN\n====================================\nKlant: ${klant}  Datum: ${datum}  Start: ${start}  Eind: ${eind}\n\n`;
+  body+=`Prosecco: ${af.prosecco?'Ja':'Nee'} | Nootjes: ${af.nootjes?'Ja':'Nee'} | Olijven/Kaas: ${af.olijven?'Ja':'Nee'}\n`;
+  body+=`Bittergarnituur: ${af.bitter}x | Koude hapjes: ${af.koude}x | Eindsnack: ${af.eindsnack?(eindOmschr||'Ja'):'Nee'}\n`;
+  if(notities)body+=`Notities: ${notities}\n`;
+  window.location.href=`mailto:info@stoom-apeldoorn.nl?subject=${encodeURIComponent('Afspraken – '+klant+' – '+datum)}&body=${encodeURIComponent(body)}`;
+  showToast('✉️ E-mailapp wordt geopend...');
+}
+
+function exportTxt(){
+  const{body,klant,datum}=buildBody();
+  const blob=new Blob([body],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`stoom_${klant}_${datum.replace(/\//g,'-')}.txt`;
+  a.click();URL.revokeObjectURL(url);
+  showToast('📋 Overzicht gedownload!');
+}
+
+function resetAll(){
+  if(!confirm('Alles resetten?'))return;
+  Object.keys(counts).forEach(k=>{counts[k]=0;document.getElementById('cnt-'+k).textContent=0;});
+  hist=[];
+  miceReservationId=null;
+  document.getElementById('micesSendBtn').disabled=true;
+  document.getElementById('micesSendBtn').textContent='🔗 Opslaan in MICE';
+  updateTotals();showToast('✓ Alles gereset');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+function switchTab(tab){
+  ['drinks','afspraken','checklist','prijzen','mice'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['drinks','afspraken','checklist','prijzen','mice'][i]===tab);
+  });
+  if(tab==='afspraken')updateSummary();
+}
+
+const checklist={
+  'Voor het feest':['Lampen aan','Nootjes / zoutjes op tafel','Muziek aan','Kaarsen aan (veilig)','Geluidssysteem getest','Verlichting getest','IJs bijvullen','Spoelbak leeg en schoon','Vaatwasser getest en leeg','Werkoppervlakken schoon'],
+  'Na het feest – Bar & glazen':['Alle glazen door de spoelmachine','Glazen poleren','Sopje over de bar','Koelingen aanvullen','Koelkast controleren','Glasbak legen','Papier weggooien','Statiegeld verwerken'],
+  'Na het feest – Schoonmaak':['Stofzuigen','Keukenvloer dweilen','Vensterbanken afnemen','Tafels afnemen','Keuken schoon en opgeruimd','Frituurpan uit','Vaatwasser aan','Toiletten schoon','Zakjes vervangen','Vuilniszakken weg'],
+  'Afsluiten & veiligheid':['Alle lampen en apparaten uit','Kaarsen uitgeblazen en opgeborgen','Deuren en ramen afgesloten']
+};
+const checkState={};
+
+function buildChecklist(){
+  let html='';
+  Object.keys(checklist).forEach(section=>{
+    const items=checklist[section];
+    const sKey=section.replace(/\W+/g,'_');
+    html+=`<div class="check-section"><div class="cs-header"><span>${section}</span><span class="cs-prog" id="prog-${sKey}">0/${items.length}</span></div>`;
+    items.forEach((item,i)=>{
+      const id=sKey+'_'+i;checkState[id]=false;
+      html+=`<div class="ci" onclick="toggleCheck('${id}','${section}')"><div class="cbox" id="box-${id}"></div><span class="clbl" id="lbl-${id}">${item}</span></div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('checklistContainer').innerHTML=html;
+  updateAllProg();
+}
+
+function toggleCheck(id,section){
+  checkState[id]=!checkState[id];
+  document.getElementById('box-'+id).classList.toggle('chk',checkState[id]);
+  document.getElementById('lbl-'+id).classList.toggle('done',checkState[id]);
+  updateSectionProg(section);
+}
+
+function updateSectionProg(section){
+  const items=checklist[section];let done=0;
+  const sKey=section.replace(/\W+/g,'_');
+  items.forEach((_,i)=>{if(checkState[sKey+'_'+i])done++;});
+  const el=document.getElementById('prog-'+sKey);
+  if(el)el.textContent=done+'/'+items.length;
+}
+
+function updateAllProg(){Object.keys(checklist).forEach(s=>updateSectionProg(s));}
+
+function stuurEmailChecklist(){
+  const{klant,datum,start,eind}=getSession();
+  let body=`STOOM APELDOORN - CHECKLIST\n====================================\nKlant: ${klant}  Datum: ${datum}  Start: ${start}  Eind: ${eind}\n`;
+  Object.keys(checklist).forEach(section=>{
+    const sKey=section.replace(/\W+/g,'_');
+    body+=`\n${section.toUpperCase()}\n`;
+    checklist[section].forEach((item,i)=>{body+=`${checkState[sKey+'_'+i]?'[✓]':'[ ]'} ${item}\n`;});
+  });
+  window.location.href=`mailto:info@stoom-apeldoorn.nl?subject=${encodeURIComponent('Checklist – '+klant+' – '+datum)}&body=${encodeURIComponent(body)}`;
+  showToast('✉️ E-mailapp wordt geopend...');
+}
+
+function resetChecklist(){
+  if(!confirm('Checklist resetten?'))return;
+  Object.keys(checkState).forEach(id=>{
+    checkState[id]=false;
+    const b=document.getElementById('box-'+id);const l=document.getElementById('lbl-'+id);
+    if(b)b.classList.remove('chk');if(l)l.classList.remove('done');
+  });
+  updateAllProg();showToast('✓ Checklist gereset');
+}
+
+// INIT
+document.getElementById('eindsnack-omschrijving').disabled=true;
+document.getElementById('eindsnack-omschrijving').style.opacity='0.4';
+const _n=new Date();
+document.getElementById('datum').value=_n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
+document.getElementById('starttijd').value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
+
+// MICE reservering selectie luisteren
+document.getElementById('miceResList').addEventListener('change', function(){
+  if(this.value) {
+    document.getElementById('miceLoadBtn').style.background='var(--gold)';
+    document.getElementById('miceLoadBtn').style.color='var(--bg3)';
+  }
+});
+
+updateTotals();updateSummary();buildChecklist();buildPriceEditor();updatePriceLabels();
+
+// Start MICE verbinding
+setTimeout(initialiseerMice, 500);
+</script>
+</body>
+</html>
