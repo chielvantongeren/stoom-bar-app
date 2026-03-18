@@ -386,8 +386,7 @@ html,body{height:100%;background:#132d4a;}
     <div class="sec-title" style="margin-top:0;">Prijzen per product</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;">Prijzen worden automatisch opgehaald uit MICE Operations. Je kunt ze hier ook handmatig aanpassen.</div>
     <div class="btn-row" style="margin-top:0;margin-bottom:14px;">
-      <button class="abtn mice" onclick="laadPrijzenUitMice()">🔄 Prijzen ophalen uit MICE</button>
-    </div>
+      <div class="mail-info" style="margin:0 0 14px;">Prijzen zijn gekoppeld aan MICE producten via product-ID. Pas ze hier handmatig aan indien nodig.</div>
     <div class="price-edit-card" id="priceEditContainer"></div>
     <div class="btn-row" style="margin-top:14px;">
       <button class="abtn pri" onclick="savePrices()">✓ Prijzen opslaan</button>
@@ -548,8 +547,6 @@ async function initialiseerMice() {
       select.style.display = '';
     }
 
-    // Ook prijzen ophalen
-    laadPrijzenUitMice();
 
   } catch(err) {
     miceConnected = false;
