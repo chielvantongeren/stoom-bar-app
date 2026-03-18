@@ -21,29 +21,51 @@ export default async function handler(req, res) {
   const results = [];
   const errors = [];
 
+  // Maak een AbortController voor timeout
+  const fetchWithTimeout = async (url, options, timeout = 8000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      return response;
+    } catch (err) {
+      clearTimeout(timer);
+      throw err;
+    }
+  };
+
   for (const [key, count] of Object.entries(counts || {})) {
     if (!count || count <= 0) continue;
     const drink = (drinks || {})[key];
     if (!drink || !drink.miceId) continue;
 
     try {
-      const response = await fetch(`${baseUrl}/events/${reservation_id}/products`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          product_id: drink.miceId,
-          amount: count
-        })
-      });
+      const response = await fetchWithTimeout(
+        `${baseUrl}/events/${reservation_id}/products`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            product_id: drink.miceId,
+            amount: count
+          })
+        },
+        8000
+      );
       const data = await response.json();
 
-      if (response.ok && data.page?.status === 'success') {
-        results.push({ key, naam: drink.label, count, status: 'ok' });
+      if (response.ok) {
+        results.push({ key, naam: drink.label, count, status: 'ok', response: JSON.stringify(data).slice(0,200) });
       } else {
-        errors.push({ key, naam: drink.label, error: data.page?.message || JSON.stringify(data).slice(0,100) });
+        errors.push({ key, naam: drink.label, error: data.page?.message || JSON.stringify(data).slice(0,150) });
       }
     } catch (err) {
-      errors.push({ key, naam: drink.label, error: err.message });
+      if (err.name === 'AbortError') {
+        errors.push({ key, naam: drink.label, error: 'Timeout — MICE reageert te langzaam' });
+      } else {
+        errors.push({ key, naam: drink.label, error: err.message });
+      }
     }
   }
 
