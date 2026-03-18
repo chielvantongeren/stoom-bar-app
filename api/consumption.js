@@ -7,7 +7,6 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.MICE_API_KEY;
   const baseUrl = 'https://app.miceoperations.com/api/v1';
-
   if (!apiKey) return res.status(500).json({ error: 'MICE_API_KEY not configured' });
 
   const { reservation_id, counts, drinks } = req.body || {};
@@ -19,51 +18,42 @@ export default async function handler(req, res) {
     'Content-Type': 'application/json'
   };
 
-  const results = [];
-  const errors = [];
+  // Test welke endpoints beschikbaar zijn voor dit event
+  const tests = {};
 
-  // Probeer elk drankje als product toe te voegen aan het event
-  for (const [key, count] of Object.entries(counts || {})) {
-    if (!count || count <= 0) continue;
-    const drink = (drinks || {})[key];
-    if (!drink) continue;
+  // Test 1: GET event zelf
+  try {
+    const r = await fetch(`${baseUrl}/events/${reservation_id}`, { headers });
+    const d = await r.json();
+    tests['GET /events/id'] = { status: r.status, keys: Object.keys(d.data || d) };
+  } catch(e) { tests['GET /events/id'] = { error: e.message }; }
 
-    // Zoek product ID op in MICE op basis van naam
-    try {
-      const prodResp = await fetch(`${baseUrl}/products?limit=100`, { headers });
-      const prodData = await prodResp.json();
-      const allProds = prodData.data || [];
+  // Test 2: GET products van event
+  try {
+    const r = await fetch(`${baseUrl}/events/${reservation_id}/products`, { headers });
+    const d = await r.json();
+    tests['GET /events/id/products'] = { status: r.status, sample: JSON.stringify(d).slice(0,200) };
+  } catch(e) { tests['GET /events/id/products'] = { error: e.message }; }
 
-      const naam = drink.label.toLowerCase();
-      const match = allProds.find(p => {
-        const pn = (p.name || '').toLowerCase();
-        return pn.includes(naam) || naam.includes(pn.split(' ')[0]);
-      });
+  // Test 3: POST product naar event
+  try {
+    const r = await fetch(`${baseUrl}/events/${reservation_id}/products`, {
+      method: 'POST', headers,
+      body: JSON.stringify({ product_id: 1, amount: 1 })
+    });
+    const d = await r.json();
+    tests['POST /events/id/products'] = { status: r.status, sample: JSON.stringify(d).slice(0,300) };
+  } catch(e) { tests['POST /events/id/products'] = { error: e.message }; }
 
-      if (match) {
-        // Voeg product toe aan event
-        const addResp = await fetch(`${baseUrl}/events/${reservation_id}/products`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            product_id: match.id,
-            amount: count,
-            price: match.price || drink.price || 0
-          })
-        });
-        const addData = await addResp.json();
-        if (addResp.ok) {
-          results.push({ key, naam: drink.label, count, status: 'ok' });
-        } else {
-          errors.push({ key, naam: drink.label, error: addData.page?.message || 'Fout' });
-        }
-      } else {
-        errors.push({ key, naam: drink.label, error: 'Product niet gevonden in MICE' });
-      }
-    } catch (err) {
-      errors.push({ key, error: err.message });
-    }
-  }
+  // Test 4: PATCH event zelf
+  try {
+    const r = await fetch(`${baseUrl}/events/${reservation_id}`, {
+      method: 'PATCH', headers,
+      body: JSON.stringify({ message: 'test' })
+    });
+    const d = await r.json();
+    tests['PATCH /events/id'] = { status: r.status, sample: JSON.stringify(d).slice(0,200) };
+  } catch(e) { tests['PATCH /events/id'] = { error: e.message }; }
 
-  return res.status(200).json({ success: true, results, errors });
+  return res.status(200).json({ debug: true, reservation_id, tests });
 }
