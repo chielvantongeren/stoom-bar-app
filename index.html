@@ -684,18 +684,23 @@ async function stuurNaarMice() {
       reservation_id: miceReservationId,
       counts: counts,
       drinks: Object.fromEntries(
-        Object.entries(drinks).map(([k,v]) => [k, {label: v.label, price: v.price}])
+        Object.entries(drinks).map(([k,v]) => [k, {label: v.label, price: v.price, miceId: v.miceId}])
       )
     });
 
     const ok = (data.results || []).length;
     const err = (data.errors || []).length;
 
-    if(ok > 0) {
+    if(ok > 0 && err === 0) {
       showToast(`✓ ${ok} product(en) toegevoegd aan MICE!`);
       btn.textContent = '✓ Opgeslagen in MICE';
-    } else if(err > 0) {
-      showToast(`⚠️ Niet gelukt: ${data.errors[0]?.error || 'Onbekende fout'}`);
+    } else if(ok > 0 && err > 0) {
+      showToast(`✓ ${ok} ok · ⚠️ ${err} mislukt`);
+      btn.textContent = '⚠️ Deels opgeslagen';
+      btn.disabled = false;
+    } else {
+      const eersteErr = data.errors?.[0]?.error || 'Onbekende fout';
+      showToast(`⚠️ ${eersteErr}`);
       btn.textContent = '🔗 Opslaan in MICE';
       btn.disabled = false;
     }
