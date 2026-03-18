@@ -508,37 +508,30 @@ async function initialiseerMice() {
 
     const select = document.getElementById('miceResList');
     const loadBtn = document.getElementById('miceLoadBtn');
+    // Server filtert al op datum — gebruik direct data.data
     const items = data.data || [];
 
     if(Array.isArray(items) && items.length > 0) {
-      // Filter op datum van vandaag
-      const vandaagStr = vandaag;
-      const vandaagItems = items.filter(r => {
-        const start = (r.datetime_start || '').slice(0,10);
-        return start === vandaagStr;
-      });
-      const toonItems = vandaagItems.length > 0 ? vandaagItems : items.slice(0,20);
-
       select.innerHTML = '<option value="">-- Selecteer evenement --</option>';
-      toonItems.forEach(r => {
+      items.forEach(r => {
         const opt = document.createElement('option');
         opt.value = r.id;
-        const naam = r.name || ('Evenement '+r.id);
-        const datum = r.datetime_start ? new Date(r.datetime_start).toLocaleDateString('nl-NL',{day:'numeric',month:'short'}) : '';
+        const naam = (r.name || ('Evenement '+r.id)).trim();
         const tijd = r.datetime_start ? r.datetime_start.slice(11,16) : '';
+        const eindTijd = r.datetime_end ? r.datetime_end.slice(11,16) : '';
         const type = r.event_type ? r.event_type.name : '';
-        opt.textContent = naam.trim() + (datum?' · '+datum:'') + (tijd?' '+tijd:'') + (type?' ('+type+')':'');
+        opt.textContent = naam + (tijd?' · '+tijd:'') + (eindTijd?'-'+eindTijd:'') + (type?' ('+type+')':'');
         opt.dataset.event = JSON.stringify(r);
         select.appendChild(opt);
       });
       select.style.display = '';
       loadBtn.style.display = '';
-      const aantalVandaag = vandaagItems.length;
-      setMiceStatus('ok', aantalVandaag > 0
-        ? `Verbonden · ${aantalVandaag} event(s) vandaag`
-        : `Verbonden · ${toonItems.length} recente events`);
+      setMiceStatus('ok', `Verbonden · ${items.length} event(s) vandaag`);
     } else {
-      setMiceStatus('ok', 'Verbonden · Geen events gevonden');
+      setMiceStatus('ok', 'Verbonden · Geen events vandaag');
+      // Toon select wel zodat gebruiker kan zien dat er niks is
+      select.innerHTML = '<option value="">-- Geen events vandaag --</option>';
+      select.style.display = '';
     }
 
     // Ook prijzen ophalen
