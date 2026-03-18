@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="STOOM"/>
 <title>STOOM Evenementen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -140,7 +141,16 @@ html,body{height:100%;background:#132d4a;}
 .price-row:last-child{border-bottom:none;}
 .price-emoji{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
 .price-name{flex:1;font-size:14px;color:var(--text);font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
-.price-input{width:72px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 8px;font-size:14px;font-family:'Source Sans 3',sans-serif;text-align:right;}
+.price-input{width:72px;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:7px 8px;font-size:14px;font-family:'Oswald',sans-serif;text-align:right;}
+.qr-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:300;align-items:center;justify-content:center;flex-direction:column;}
+.qr-overlay.show{display:flex;}
+.qr-modal{background:var(--bg2);border:2px solid var(--gold);border-radius:16px;padding:28px 24px;text-align:center;max-width:340px;width:90%;}
+.qr-titel{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+.qr-bedrag{font-family:'Oswald',sans-serif;font-weight:700;font-size:42px;color:#fff;margin-bottom:16px;}
+.qr-box{background:#fff;border-radius:10px;padding:12px;display:inline-block;margin-bottom:16px;}
+.qr-sub{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
+.qr-close{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;cursor:pointer;margin-top:4px;}
+.abtn.mollie{background:#f5a623;color:#000;border:none;}
 .mice-info-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:16px;margin-bottom:14px;}
 .mice-info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border2);font-size:13px;}
 .mice-info-row:last-child{border-bottom:none;}
@@ -266,6 +276,9 @@ html,body{height:100%;background:#132d4a;}
     <div class="totals-card"><div class="totals-inner" id="totalsRows"></div></div>
     <div class="btn-row">
       <button class="abtn mice" id="micesSendBtn" onclick="stuurNaarMice()" disabled>🔗 Opslaan in MICE</button>
+    </div>
+    <div class="btn-row">
+      <button class="abtn mollie" id="mollieBtn" onclick="maakBetaalverzoek()">💳 Betaalverzoek + QR</button>
     </div>
     <div class="btn-row">
       <button class="abtn mail" onclick="stuurEmail()">✉️ Stuur naar STOOM</button>
@@ -412,6 +425,19 @@ html,body{height:100%;background:#132d4a;}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="qr-overlay" id="qrOverlay">
+  <div class="qr-modal">
+    <div class="qr-titel">💳 Betaalverzoek</div>
+    <div class="qr-bedrag" id="qrBedrag">€ 0,00</div>
+    <div class="qr-box">
+      <canvas id="qrCanvas" width="200" height="200"></canvas>
+    </div>
+    <div class="qr-sub" id="qrSub">Scan de QR-code om te betalen via iDEAL of creditcard</div>
+    <a id="qrLink" href="#" target="_blank" style="display:block;background:var(--gold);color:var(--bg3);border-radius:8px;padding:12px;font-family:'Oswald',sans-serif;font-weight:700;font-size:14px;letter-spacing:1px;text-transform:uppercase;text-decoration:none;margin-bottom:10px;">🔗 Open betaalpagina</a>
+    <button class="qr-close" onclick="sluitQR()">✕ Sluiten</button>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -967,6 +993,88 @@ function resetChecklist(){
     if(b)b.classList.remove('chk');if(l)l.classList.remove('done');
   });
   updateAllProg();showToast('✓ Checklist gereset');
+}
+
+// MOLLIE + QR
+async function maakBetaalverzoek() {
+  const hasPrices = Object.keys(drinks).some(k=>drinks[k].price>0);
+  let bedrag = 0;
+  Object.keys(drinks).forEach(k=>{
+    if(counts[k]>0) bedrag += counts[k]*drinks[k].price;
+  });
+
+  if(!hasPrices || bedrag <= 0) {
+    showToast('⚠️ Stel eerst prijzen in via het Prijzen tabblad');
+    return;
+  }
+
+  const klant = document.getElementById('klant').value || 'Klant';
+  const btn = document.getElementById('mollieBtn');
+  btn.textContent = '⏳ Betaalverzoek aanmaken...';
+  btn.disabled = true;
+
+  try {
+    const resp = await fetch(`${API_BASE}/mollie`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        amount: bedrag.toFixed(2),
+        description: `STOOM Apeldoorn – ${klant}`,
+        redirectUrl: window.location.href
+      })
+    });
+
+    const data = await resp.json();
+    if(data.error) throw new Error(data.error);
+
+    // Toon QR modal
+    const checkoutUrl = data.checkoutUrl;
+    document.getElementById('qrBedrag').textContent = '€ ' + parseFloat(data.amount?.value||bedrag).toFixed(2).replace('.',',');
+    document.getElementById('qrLink').href = checkoutUrl;
+    document.getElementById('qrSub').textContent = `Scan om € ${bedrag.toFixed(2).replace('.',',')} te betalen voor ${klant}`;
+
+    // Genereer QR code
+    tekenQR(checkoutUrl);
+    document.getElementById('qrOverlay').classList.add('show');
+    showToast('✓ Betaalverzoek aangemaakt!');
+
+  } catch(err) {
+    showToast('⚠️ Mollie fout: ' + err.message);
+  } finally {
+    btn.textContent = '💳 Betaalverzoek + QR';
+    btn.disabled = false;
+  }
+}
+
+function tekenQR(text) {
+  const canvas = document.getElementById('qrCanvas');
+  const ctx = canvas.getContext('2d');
+  const size = 200;
+  canvas.width = size; canvas.height = size;
+
+  // Gebruik QRious library voor QR generatie
+  if(typeof QRious !== 'undefined') {
+    new QRious({element: canvas, value: text, size: size, backgroundAlpha: 1, foreground: '#000', background: '#fff', level: 'H'});
+  } else {
+    // Fallback: toon link tekst
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = '#000';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('QR library laden...', size/2, size/2);
+    // Laad QRious dynamisch
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js';
+    script.onload = () => {
+      new QRious({element: canvas, value: text, size: size, backgroundAlpha: 1, foreground: '#000', background: '#fff', level: 'H'});
+    };
+    document.head.appendChild(script);
+  }
+}
+
+function sluitQR() {
+  document.getElementById('qrOverlay').classList.remove('show');
 }
 
 // INIT
