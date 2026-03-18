@@ -18,42 +18,34 @@ export default async function handler(req, res) {
     'Content-Type': 'application/json'
   };
 
-  // Test welke endpoints beschikbaar zijn voor dit event
-  const tests = {};
+  const results = [];
+  const errors = [];
 
-  // Test 1: GET event zelf
-  try {
-    const r = await fetch(`${baseUrl}/events/${reservation_id}`, { headers });
-    const d = await r.json();
-    tests['GET /events/id'] = { status: r.status, keys: Object.keys(d.data || d) };
-  } catch(e) { tests['GET /events/id'] = { error: e.message }; }
+  for (const [key, count] of Object.entries(counts || {})) {
+    if (!count || count <= 0) continue;
+    const drink = (drinks || {})[key];
+    if (!drink || !drink.miceId) continue;
 
-  // Test 2: GET products van event
-  try {
-    const r = await fetch(`${baseUrl}/events/${reservation_id}/products`, { headers });
-    const d = await r.json();
-    tests['GET /events/id/products'] = { status: r.status, sample: JSON.stringify(d).slice(0,200) };
-  } catch(e) { tests['GET /events/id/products'] = { error: e.message }; }
+    try {
+      const response = await fetch(`${baseUrl}/events/${reservation_id}/products`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          product_id: drink.miceId,
+          amount: count
+        })
+      });
+      const data = await response.json();
 
-  // Test 3: POST product naar event
-  try {
-    const r = await fetch(`${baseUrl}/events/${reservation_id}/products`, {
-      method: 'POST', headers,
-      body: JSON.stringify({ product_id: 1, amount: 1 })
-    });
-    const d = await r.json();
-    tests['POST /events/id/products'] = { status: r.status, sample: JSON.stringify(d).slice(0,300) };
-  } catch(e) { tests['POST /events/id/products'] = { error: e.message }; }
+      if (response.ok && data.page?.status === 'success') {
+        results.push({ key, naam: drink.label, count, status: 'ok' });
+      } else {
+        errors.push({ key, naam: drink.label, error: data.page?.message || JSON.stringify(data).slice(0,100) });
+      }
+    } catch (err) {
+      errors.push({ key, naam: drink.label, error: err.message });
+    }
+  }
 
-  // Test 4: PATCH event zelf
-  try {
-    const r = await fetch(`${baseUrl}/events/${reservation_id}`, {
-      method: 'PATCH', headers,
-      body: JSON.stringify({ message: 'test' })
-    });
-    const d = await r.json();
-    tests['PATCH /events/id'] = { status: r.status, sample: JSON.stringify(d).slice(0,200) };
-  } catch(e) { tests['PATCH /events/id'] = { error: e.message }; }
-
-  return res.status(200).json({ debug: true, reservation_id, tests });
+  return res.status(200).json({ success: true, results, errors });
 }
