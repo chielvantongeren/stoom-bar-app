@@ -268,10 +268,17 @@ html,body{height:100%;background:#132d4a;}
         <span class="d-price" id="pr-sterke"></span>
         <span class="d-count" id="cnt-sterke">0</span>
       </button>
+      <button class="drink-btn" onclick="tap('mix')">
+        <span class="d-icon">🍹</span><span class="d-name">Mixdrankje</span>
+        <span class="d-price" id="pr-mix"></span>
+        <span class="d-count" id="cnt-mix">0</span>
+      </button>
+      <button class="undo-btn-grid" onclick="undoLast()">
+        <span class="undo-icon">↩</span>
+        <span class="undo-label">Ongedaan maken</span>
+      </button>
     </div>
-    <div class="undo-wrap">
-      <button class="undo-btn" onclick="undoLast()">↩ Ongedaan maken</button>
-    </div>
+    <div class="undo-wrap"></div>
     <div class="kassa-banner" id="kassaBanner" style="display:none;">
       <div>
         <div class="kassa-label">💶 Kassatotaal</div>
