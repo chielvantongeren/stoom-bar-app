@@ -464,16 +464,16 @@ const API_BASE = window.location.hostname === 'localhost' || window.location.hos
 // DRINK DATA
 // ============================================================
 const drinks={
-  koffie:    {label:'Koffie / Thee',     emoji:'☕', price:2.75, miceId:null},
-  fris:      {label:'Frisdrank',          emoji:'🥤', price:3.25, miceId:null},
-  bier:      {label:'Pils',               emoji:'🍺', price:2.89, miceId:null},
-  bier00:    {label:'Pils 0.0',           emoji:'🍺', price:3.21, miceId:null},
-  speciaal:  {label:'Speciaal Bier',      emoji:'🍻', price:4.55, miceId:null},
-  speciaal00:{label:'Speciaal Bier 0.0',  emoji:'🍻', price:5.05, miceId:null},
-  wijn:      {label:'Wijn',               emoji:'🍷', price:3.93, miceId:null},
-  prosecco:  {label:'Prosecco',           emoji:'🥂', price:3.10, miceId:null},
-  sterke:    {label:'Sterke Drank',       emoji:'🥃', price:4.55, miceId:null},
-  mix:       {label:'Mixdrankje',         emoji:'🍹', price:7.85, miceId:null}
+  koffie:    {label:'Koffie / Thee',     emoji:'☕', price:3.00, priceExcl:2.75, vat:9,  miceId:383698},
+  fris:      {label:'Frisdrank',          emoji:'🥤', price:3.54, priceExcl:3.25, vat:9,  miceId:383707},
+  bier:      {label:'Pils',               emoji:'🍺', price:3.50, priceExcl:2.89, vat:21, miceId:383711},
+  bier00:    {label:'Pils 0.0',           emoji:'🍺', price:3.50, priceExcl:3.21, vat:9,  miceId:383713},
+  speciaal:  {label:'Speciaalbier',       emoji:'🍻', price:5.51, priceExcl:4.55, vat:21, miceId:383714},
+  speciaal00:{label:'Speciaalbier 0.0',   emoji:'🍻', price:6.11, priceExcl:5.05, vat:21, miceId:383716},
+  wijn:      {label:'Wijn',               emoji:'🍷', price:4.76, priceExcl:3.93, vat:21, miceId:383717},
+  prosecco:  {label:'Prosecco',           emoji:'🥂', price:3.75, priceExcl:3.10, vat:21, miceId:312714},
+  sterke:    {label:'Sterke Drank',       emoji:'🥃', price:5.51, priceExcl:4.55, vat:21, miceId:383718},
+  mix:       {label:'Mixdrankje',         emoji:'🍹', price:9.50, priceExcl:7.85, vat:21, miceId:383719}
 };
 
 const counts={};
@@ -752,7 +752,10 @@ function fmtFull(p){return'€ '+p.toFixed(2).replace('.',',');}
 function updatePriceLabels(){
   Object.keys(drinks).forEach(k=>{
     const el=document.getElementById('pr-'+k);
-    if(el)el.textContent=fmt(drinks[k].price);
+    if(el){
+      const d=drinks[k];
+      el.textContent = d.price > 0 ? `€${d.price.toFixed(2).replace('.',',')} · ${d.vat}% BTW` : '';
+    }
   });
 }
 
@@ -779,9 +782,11 @@ function updateTotals(){
   const hasPrices=Object.keys(drinks).some(k=>drinks[k].price>0);
   Object.keys(drinks).forEach(k=>{
     if(counts[k]>0){
-      const sub=counts[k]*drinks[k].price;
-      const prTxt=hasPrices&&drinks[k].price>0?` <span class="price-val">${fmtFull(sub)}</span>`:'';
-      html+=`<div class="trow"><span class="lbl">${drinks[k].emoji} ${drinks[k].label}</span><span class="val">${counts[k]}x${prTxt}</span></div>`;
+      const d=drinks[k];
+      const sub=counts[k]*d.price;
+      const subExcl=counts[k]*(d.priceExcl||d.price);
+      const prTxt=hasPrices&&d.price>0?` <span class="price-val">${fmtFull(sub)} (${d.vat||0}% BTW)</span>`:'';
+      html+=`<div class="trow"><span class="lbl">${d.emoji} ${d.label}</span><span class="val">${counts[k]}x${prTxt}</span></div>`;
       total+=counts[k];bedrag+=sub;
     }
   });
