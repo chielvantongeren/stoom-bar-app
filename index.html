@@ -508,8 +508,9 @@ async function initialiseerMice() {
 
     const select = document.getElementById('miceResList');
     const loadBtn = document.getElementById('miceLoadBtn');
-    // Server filtert al op datum — gebruik direct data.data
-    const items = data.data || [];
+    // Server filtert al op datum — filter ook op bevestigde events
+    const alleItems = data.data || [];
+    const items = alleItems.filter(r => r.status === 'confirmed');
 
     if(Array.isArray(items) && items.length > 0) {
       select.innerHTML = '<option value="">-- Selecteer evenement --</option>';
