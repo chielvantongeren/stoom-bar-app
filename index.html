@@ -668,18 +668,37 @@ async function stuurNaarMice() {
     return;
   }
 
-  const {body} = buildBody();
+  let total = 0;
+  Object.keys(counts).forEach(k => total += counts[k]);
+  if(total === 0) {
+    showToast('⚠️ Nog geen consumpties geregistreerd');
+    return;
+  }
+
   const btn = document.getElementById('micesSendBtn');
   btn.textContent = '⏳ Bezig...';
   btn.disabled = true;
 
   try {
-    await micePost('/consumption', {
+    const data = await micePost('/consumption', {
       reservation_id: miceReservationId,
-      note: body
+      counts: counts,
+      drinks: Object.fromEntries(
+        Object.entries(drinks).map(([k,v]) => [k, {label: v.label, price: v.price}])
+      )
     });
-    showToast('✓ Opgeslagen in MICE!');
-    btn.textContent = '✓ Opgeslagen in MICE';
+
+    const ok = (data.results || []).length;
+    const err = (data.errors || []).length;
+
+    if(ok > 0) {
+      showToast(`✓ ${ok} product(en) toegevoegd aan MICE!`);
+      btn.textContent = '✓ Opgeslagen in MICE';
+    } else if(err > 0) {
+      showToast(`⚠️ Niet gelukt: ${data.errors[0]?.error || 'Onbekende fout'}`);
+      btn.textContent = '🔗 Opslaan in MICE';
+      btn.disabled = false;
+    }
   } catch(err) {
     showToast('⚠️ MICE fout: ' + err.message);
     btn.textContent = '🔗 Opslaan in MICE';
