@@ -553,7 +553,8 @@ function setMiceStatus(status, text) {
 async function initialiseerMice() {
   setMiceStatus('loading', 'MICE verbinden...');
   try {
-    const vandaag = new Date().toISOString().split('T')[0];
+    const nu = new Date();
+    const vandaag = nu.getFullYear()+'-'+String(nu.getMonth()+1).padStart(2,'0')+'-'+String(nu.getDate()).padStart(2,'0');
     const data = await miceGet(`/reservations?date=${vandaag}`);
     miceConnected = true;
     setMiceStatus('ok', 'Verbonden ✓');
