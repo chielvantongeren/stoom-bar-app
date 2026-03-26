@@ -721,7 +721,14 @@ async function stuurNaarMice() {
       reservation_id: miceReservationId,
       counts: counts,
       drinks: Object.fromEntries(
-        Object.entries(drinks).map(([k,v]) => [k, {label: v.label, price: v.price, miceId: v.miceId}])
+        Object.entries(drinks).map(([k,v]) => [k, {
+          label: v.label,
+          price: v.price,
+          priceExcl: v.priceExcl,
+          vat: v.vat,
+          miceId: v.miceId,
+          code: String(v.miceId || k)
+        }])
       )
     });
 
