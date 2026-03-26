@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   const baseUrl = 'https://app.miceoperations.com/api/v1';
   if (!apiKey) return res.status(500).json({ error: 'MICE_API_KEY not configured' });
 
-  const { reservation_id, counts, drinks, note } = req.body || {};
+  const { reservation_id, counts, drinks } = req.body || {};
   if (!reservation_id) return res.status(400).json({ error: 'reservation_id is verplicht' });
 
   const headers = {
@@ -18,58 +18,88 @@ export default async function handler(req, res) {
     'Content-Type': 'application/json'
   };
 
-  // Bouw notitie tekst op
-  let notitie = note || '';
-  if (!notitie && counts && drinks) {
-    const regels = [];
-    let totaal = 0;
-    let bedrag = 0;
-    for (const [key, count] of Object.entries(counts)) {
-      if (!count || count <= 0) continue;
-      const d = (drinks || {})[key];
-      if (!d) continue;
-      const sub = count * (d.price || 0);
-      regels.push(`${d.label}: ${count}x = €${sub.toFixed(2)}`);
-      totaal += count;
-      bedrag += sub;
-    }
-    notitie = `STOOM Bar registratie:\n${regels.join('\n')}\nTotaal: ${totaal} consumpties · €${bedrag.toFixed(2)}`;
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Stap 1: POS setup - open de bon
+  try {
+    await fetch(`${baseUrl}/pos/${reservation_id}/setup`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ date: today })
+    });
+  } catch(e) {
+    // Setup mag falen, doorgaan met receipt
   }
 
-  const results = {};
+  // Stap 2: Bouw items op uit de geregistreerde drankjes
+  const items = [];
+  let bonNummer = `STOOM-${Date.now()}`;
 
-  // Optie 1: PATCH event message veld
-  try {
-    const r1 = await fetch(`${baseUrl}/events/${reservation_id}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({ message: notitie })
+  for (const [key, count] of Object.entries(counts || {})) {
+    if (!count || count <= 0) continue;
+    const d = (drinks || {})[key];
+    if (!d) continue;
+
+    const priceIncl = d.price || 0;
+    const vatRate = (d.vat || 0) / 100;
+    const priceExcl = d.priceExcl || (vatRate > 0 ? priceIncl / (1 + vatRate) : priceIncl);
+    const vatAmount = priceIncl - priceExcl;
+    const ledger = vatRate === 0.21 ? '8302' : vatRate === 0.09 ? '8301' : '';
+
+    items.push({
+      object_type: 'product',
+      object_code: d.code || String(d.miceId || key),
+      name: d.label,
+      amount: count,
+      date: today,
+      vat_rates: [
+        {
+          price: parseFloat((priceIncl * count).toFixed(2)),
+          vat_rate: vatRate,
+          general_ledger_number: ledger
+        }
+      ]
     });
-    const d1 = await r1.json();
-    results['PATCH message'] = { status: r1.status, response: JSON.stringify(d1).slice(0,300) };
-  } catch(e) { results['PATCH message'] = { error: e.message }; }
+  }
 
-  // Optie 2: POST naar event notes
+  if (items.length === 0) {
+    return res.status(400).json({ error: 'Geen consumpties om te registreren' });
+  }
+
+  // Stap 3: POS receipt - stuur verbruik naar MICE
   try {
-    const r2 = await fetch(`${baseUrl}/events/${reservation_id}/notes`, {
+    const response = await fetch(`${baseUrl}/pos/${reservation_id}/receipt`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ content: notitie })
+      body: JSON.stringify({
+        date: today,
+        synced: false,
+        billed: false,
+        identifier: bonNummer,
+        items
+      })
     });
-    const d2 = await r2.json();
-    results['POST notes'] = { status: r2.status, response: JSON.stringify(d2).slice(0,300) };
-  } catch(e) { results['POST notes'] = { error: e.message }; }
 
-  // Optie 3: POST naar event messages
-  try {
-    const r3 = await fetch(`${baseUrl}/events/${reservation_id}/messages`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ content: notitie, internal: true })
-    });
-    const d3 = await r3.json();
-    results['POST messages'] = { status: r3.status, response: JSON.stringify(d3).slice(0,300) };
-  } catch(e) { results['POST messages'] = { error: e.message }; }
+    const data = await response.json();
 
-  return res.status(200).json({ success: true, notitie, results });
+    if (response.ok && data.page?.status === 'success') {
+      return res.status(200).json({
+        success: true,
+        message: `${items.length} product(en) opgeslagen in MICE`,
+        bonNummer,
+        items: items.length,
+        response: data
+      });
+    } else {
+      return res.status(200).json({
+        success: false,
+        error: data.page?.message || 'Onbekende fout van MICE',
+        detail: data,
+        items_sent: items
+      });
+    }
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
 }
