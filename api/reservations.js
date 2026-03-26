@@ -6,43 +6,40 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.MICE_API_KEY;
   const baseUrl = 'https://app.miceoperations.com/api/v1';
+  if (!apiKey) return res.status(500).json({ error: 'MICE_API_KEY not configured' });
 
-  if (!apiKey) {
-    return res.status(500).json({ error: 'MICE_API_KEY not configured' });
-  }
+  // Gebruik datum van client (Nederlandse tijd) als die meegegeven wordt
+  const date = req.query.date || '';
 
-  const date = req.query.date || new Date().toISOString().slice(0,10);
+  const headers = {
+    'X-Authorization': `Basic ${apiKey}`,
+    'Accept': 'application/json'
+  };
 
   try {
-    // Haal alle paginas op en filter op datum
     let allItems = [];
     let page = 1;
     let totalPages = 1;
 
     while (page <= totalPages && page <= 12) {
       const url = `${baseUrl}/events?limit=100&page=${page}`;
-      const response = await fetch(url, {
-        headers: {
-          'X-Authorization': `Basic ${apiKey}`,
-          'Accept': 'application/json'
-        }
-      });
+      const response = await fetch(url, { headers });
       const data = await response.json();
       const items = data.data || [];
       totalPages = data.page?.total_pages || 1;
 
-      // Filter op datum
-      const vandaag = items.filter(r => {
+      // Filter op datum en status confirmed
+      const gefilterd = items.filter(r => {
         const start = (r.datetime_start || '').slice(0, 10);
-        return start === date;
+        return start === date && r.status === 'confirmed';
       });
 
-      allItems = allItems.concat(vandaag);
+      allItems = allItems.concat(gefilterd);
 
-      // Stop als we al events gevonden hebben en voorbij de datum zijn
+      // Stop als we voorbij de gevraagde datum zijn
       if (items.length > 0) {
-        const laaste = (items[items.length-1].datetime_start || '').slice(0,10);
-        if (laaste > date && allItems.length > 0) break;
+        const laatste = (items[items.length - 1].datetime_start || '').slice(0, 10);
+        if (laatste > date && allItems.length > 0) break;
       }
 
       page++;
