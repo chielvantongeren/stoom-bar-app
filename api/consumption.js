@@ -19,42 +19,40 @@ export default async function handler(req, res) {
   };
 
   const today = new Date().toISOString().slice(0, 10);
+  const bonNummer = `STOOM-${Date.now()}`;
 
-  // Stap 1: POS setup - open de bon
+  // Stap 1: POS setup
   try {
     await fetch(`${baseUrl}/pos/${reservation_id}/setup`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ date: today })
     });
-  } catch(e) {
-    // Setup mag falen, doorgaan met receipt
-  }
+  } catch(e) {}
 
-  // Stap 2: Bouw items op uit de geregistreerde drankjes
+  // Stap 2: Bouw items op — stukprijs per consumptie, amount = aantal
   const items = [];
-  let bonNummer = `STOOM-${Date.now()}`;
 
   for (const [key, count] of Object.entries(counts || {})) {
     if (!count || count <= 0) continue;
     const d = (drinks || {})[key];
     if (!d) continue;
 
-    const priceIncl = d.price || 0;
-    const vatRate = (d.vat || 0) / 100;
-    const priceExcl = d.priceExcl || (vatRate > 0 ? priceIncl / (1 + vatRate) : priceIncl);
-    const vatAmount = priceIncl - priceExcl;
-    const ledger = vatRate === 0.21 ? '8302' : vatRate === 0.09 ? '8301' : '';
+    const priceIncl  = parseFloat((d.price || 0).toFixed(2));
+    const vatRate    = (d.vat || 0) / 100;
+    const priceExcl  = parseFloat((d.priceExcl || priceIncl / (1 + vatRate)).toFixed(2));
+    const vatAmount  = parseFloat((priceIncl - priceExcl).toFixed(2));
+    const ledger     = vatRate === 0.21 ? '8302' : vatRate === 0.09 ? '8301' : '';
 
     items.push({
       object_type: 'product',
-      object_code: d.code || String(d.miceId || key),
+      object_code: String(d.miceId || key),
       name: d.label,
-      amount: count,
+      amount: count,           // aantal consumpties
       date: today,
       vat_rates: [
         {
-          price: parseFloat((priceIncl * count).toFixed(2)),
+          price: priceIncl,    // stukprijs incl BTW per consumptie
           vat_rate: vatRate,
           general_ledger_number: ledger
         }
@@ -66,7 +64,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Geen consumpties om te registreren' });
   }
 
-  // Stap 3: POS receipt - stuur verbruik naar MICE
+  // Stap 3: POS receipt versturen
   try {
     const response = await fetch(`${baseUrl}/pos/${reservation_id}/receipt`, {
       method: 'POST',
@@ -87,8 +85,7 @@ export default async function handler(req, res) {
         success: true,
         message: `${items.length} product(en) opgeslagen in MICE`,
         bonNummer,
-        items: items.length,
-        response: data
+        items_sent: items
       });
     } else {
       return res.status(200).json({
