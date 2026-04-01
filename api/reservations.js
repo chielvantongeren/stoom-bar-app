@@ -8,13 +8,8 @@ export default async function handler(req, res) {
   const baseUrl = 'https://app.miceoperations.com/api/v1';
   if (!apiKey) return res.status(500).json({ error: 'MICE_API_KEY not configured' });
 
-  // Gebruik datum van client (Nederlandse tijd) als die meegegeven wordt
   const date = req.query.date || '';
-
-  const headers = {
-    'X-Authorization': `Basic ${apiKey}`,
-    'Accept': 'application/json'
-  };
+  const headers = { 'X-Authorization': `Basic ${apiKey}`, 'Accept': 'application/json' };
 
   try {
     let allItems = [];
@@ -28,7 +23,6 @@ export default async function handler(req, res) {
       const items = data.data || [];
       totalPages = data.page?.total_pages || 1;
 
-      // Filter op datum en status confirmed
       const gefilterd = items.filter(r => {
         const start = (r.datetime_start || '').slice(0, 10);
         return start === date && r.status === 'confirmed';
@@ -36,18 +30,28 @@ export default async function handler(req, res) {
 
       allItems = allItems.concat(gefilterd);
 
-      // Stop als we voorbij de gevraagde datum zijn
       if (items.length > 0) {
         const laatste = (items[items.length - 1].datetime_start || '').slice(0, 10);
         if (laatste > date && allItems.length > 0) break;
       }
-
       page++;
     }
 
+    const eventsMetActiviteiten = await Promise.all(
+      allItems.map(async (event) => {
+        try {
+          const detailRes = await fetch(`${baseUrl}/events/${event.id}`, { headers });
+          const detail = await detailRes.json();
+          return detail.data || event;
+        } catch(e) {
+          return event;
+        }
+      })
+    );
+
     return res.status(200).json({
-      data: allItems,
-      total_today: allItems.length
+      data: eventsMetActiviteiten,
+      total_today: eventsMetActiviteiten.length
     });
 
   } catch (err) {
