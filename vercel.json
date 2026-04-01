@@ -1,7 +1,7 @@
 {
   "version": 2,
   "routes": [
-    {"src": "/app.js", "dest": "/app.js"},
+    {"src": "/draaiboek.js", "dest": "/draaiboek.js"},
     {"src": "/api/(.*)", "dest": "/api/$1"},
     {"src": "/(.*)", "dest": "/index.html"}
   ]
