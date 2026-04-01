@@ -1,48 +1,48 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const apiKey = process.env.MICE_API_KEY;
   const baseUrl = 'https://app.miceoperations.com/api/v1';
-  if (!apiKey) return res.status(500).json({ error: 'MICE_API_KEY not configured' });
-
-  const date = req.query.date || '';
   const headers = { 'X-Authorization': `Basic ${apiKey}`, 'Accept': 'application/json' };
+  const eventId = req.query.eventid || '1127015';
+  const date = req.query.date || '';
 
+  if(req.query.debug) {
+    // Test verschillende endpoints voor dit event
+    const results = {};
+    const endpoints = [
+      `/events/${eventId}`,
+      `/events/${eventId}/activities`,
+      `/events/${eventId}/program`,
+      `/events/${eventId}/schedule`,
+    ];
+    for(const ep of endpoints) {
+      try {
+        const r = await fetch(baseUrl + ep, { headers });
+        const d = await r.json();
+        results[ep] = { status: r.status, keys: Object.keys(d.data || d || {}), activities: d.data?.activities };
+      } catch(e) {
+        results[ep] = { error: e.message };
+      }
+    }
+    return res.status(200).json(results);
+  }
+
+  // Normale werking
   try {
-    let allItems = [];
-    let page = 1;
-    let totalPages = 1;
-
+    let allItems = [], page = 1, totalPages = 1;
     while (page <= totalPages && page <= 12) {
-      const url = `${baseUrl}/events?limit=100&page=${page}`;
-      const response = await fetch(url, { headers });
-      const data = await response.json();
+      const r = await fetch(`${baseUrl}/events?limit=100&page=${page}`, { headers });
+      const data = await r.json();
       const items = data.data || [];
       totalPages = data.page?.total_pages || 1;
-
-      const gefilterd = items.filter(r => {
-        const start = (r.datetime_start || '').slice(0, 10);
-        return start === date && r.status === 'confirmed';
-      });
-
-      allItems = allItems.concat(gefilterd);
-
-      if (items.length > 0) {
-        const laatste = (items[items.length - 1].datetime_start || '').slice(0, 10);
-        if (laatste > date && allItems.length > 0) break;
-      }
+      allItems = allItems.concat(items.filter(r => r.datetime_start?.slice(0,10) === date && r.status === 'confirmed'));
+      if(items.length > 0 && items[items.length-1].datetime_start?.slice(0,10) > date && allItems.length > 0) break;
       page++;
     }
-
-    return res.status(200).json({
-      data: allItems,
-      total_today: allItems.length
-    });
-
-  } catch (err) {
+    return res.status(200).json({ data: allItems, total_today: allItems.length });
+  } catch(err) {
     return res.status(500).json({ error: err.message });
   }
 }
