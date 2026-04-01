@@ -17,7 +17,8 @@ export default async function handler(req, res) {
     let totalPages = 1;
 
     while (page <= totalPages && page <= 12) {
-      const url = `${baseUrl}/events?limit=100&page=${page}`;
+      // Voeg activities=1 toe om activiteiten mee te krijgen
+      const url = `${baseUrl}/events?limit=100&page=${page}&activities=1`;
       const response = await fetch(url, { headers });
       const data = await response.json();
       const items = data.data || [];
@@ -37,13 +38,13 @@ export default async function handler(req, res) {
       page++;
     }
 
-    // Haal per event de volledige details op
-    const eventsMetDetails = await Promise.all(
+    // Haal voor elk event de volledige details op inclusief activiteiten
+    const eventsMetActiviteiten = await Promise.all(
       allItems.map(async (event) => {
         try {
-          const r = await fetch(`${baseUrl}/events/${event.id}`, { headers });
-          const d = await r.json();
-          return d.data || event;
+          const detailRes = await fetch(`${baseUrl}/events/${event.id}`, { headers });
+          const detail = await detailRes.json();
+          return detail.data || event;
         } catch(e) {
           return event;
         }
@@ -51,11 +52,11 @@ export default async function handler(req, res) {
     );
 
     return res.status(200).json({
-      data: eventsMetDetails,
-      total_today: eventsMetDetails.length
+      data: eventsMetActiviteiten,
+      total_today: eventsMetActiviteiten.length
     });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-                   }
+}
