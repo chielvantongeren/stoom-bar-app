@@ -37,12 +37,13 @@ export default async function handler(req, res) {
       page++;
     }
 
-    const eventsMetActiviteiten = await Promise.all(
+    // Haal per event de volledige details op
+    const eventsMetDetails = await Promise.all(
       allItems.map(async (event) => {
         try {
-          const detailRes = await fetch(`${baseUrl}/events/${event.id}`, { headers });
-          const detail = await detailRes.json();
-          return detail.data || event;
+          const r = await fetch(`${baseUrl}/events/${event.id}`, { headers });
+          const d = await r.json();
+          return d.data || event;
         } catch(e) {
           return event;
         }
@@ -50,11 +51,11 @@ export default async function handler(req, res) {
     );
 
     return res.status(200).json({
-      data: eventsMetActiviteiten,
-      total_today: eventsMetActiviteiten.length
+      data: eventsMetDetails,
+      total_today: eventsMetDetails.length
     });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-}
+                   }
