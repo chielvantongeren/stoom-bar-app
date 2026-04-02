@@ -27,6 +27,8 @@ html,body{height:100%;background:#132d4a;}
 .session-bar{background:var(--bg2);padding:10px 16px;display:flex;gap:8px;align-items:flex-end;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
 .session-bar input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Source Sans 3',sans-serif;flex:1;min-width:100px;}
 .session-bar input::placeholder{color:var(--dimmed);}
+.blok-tijd-type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+@media(max-width:400px){.blok-tijd-type-grid{grid-template-columns:1fr;}}
 .modal-input{background:var(--bg);border:1.5px solid var(--border2);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Source Sans 3',sans-serif;width:100%;box-sizing:border-box;}
 .modal-input:focus{border-color:var(--gold);outline:none;}
 .modal-input::placeholder{color:var(--muted);}
@@ -422,7 +424,7 @@ html,body{height:100%;background:#132d4a;}
   <div id="blokOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;">
     <div style="background:var(--bg2);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">
       <div id="blokFormTitle" style="font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;letter-spacing:2px;color:var(--gold);margin-bottom:18px;">BLOK TOEVOEGEN</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+      <div class="blok-tijd-type-grid">
         <div><div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">TIJDSTIP</div><input type="time" id="blokTijd" class="modal-input"/></div>
         <div><div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">TYPE</div><select id="blokType" class="modal-input" style="cursor:pointer;"><option value="programma">Programma</option><option value="ontvangst">Ontvangst</option><option value="pauze">Pauze</option><option value="lunch">Lunch</option><option value="diner">Diner</option><option value="overig">Overig</option></select></div>
       </div>
