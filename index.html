@@ -399,9 +399,35 @@ html,body{height:100%;background:#132d4a;}
 
   <!-- DRAAIBOEK TAB -->
   <div class="tab-content" id="tab-draaiboek">
-    <div class="sec-title" style="margin-top:0;">Draaiboek</div>
-    <div id="draaiboekContent">
-      <div style="color:var(--muted);font-size:14px;text-align:center;padding:40px 20px;">Selecteer eerst een event via MICE om het draaiboek te laden.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div class="sec-title" style="margin:0;">Draaiboek</div>
+      <button class="abtn pri" onclick="openBlokForm(null)" style="font-size:11px;padding:6px 14px;">+ Blok</button>
+    </div>
+    <div id="draaiboekProgress" style="display:none;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:10px;letter-spacing:3px;color:var(--gold);">VOORTGANG</span>
+        <span id="draaiboekProgressTxt" style="font-size:11px;color:var(--muted);font-family:'Source Sans 3',sans-serif;"></span>
+      </div>
+      <div style="background:var(--bg3);border-radius:4px;height:4px;"><div id="draaiboekProgressBar" style="height:4px;border-radius:4px;background:var(--gold);transition:width .3s;width:0%"></div></div>
+    </div>
+    <div id="draaiboekContent"><div style="color:var(--muted);font-size:14px;text-align:center;padding:40px 20px;">Klik op + Blok om te beginnen.</div></div>
+    <div onclick="openBlokForm(null)" style="display:flex;align-items:center;gap:10px;border:1.5px dashed var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;color:var(--muted);margin-top:8px;">
+      <div style="width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;">+</div>
+      <span style="font-family:'Source Sans 3',sans-serif;font-size:14px;">Blok toevoegen</span>
+    </div>
+  </div>
+  <div id="blokOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center;">
+    <div style="background:var(--bg2);border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;">
+      <div id="blokFormTitle" style="font-family:'Oswald',sans-serif;font-weight:700;font-size:16px;letter-spacing:2px;color:var(--gold);margin-bottom:18px;">BLOK TOEVOEGEN</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div><div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">TIJDSTIP</div><input type="time" id="blokTijd" class="session-bar input" style="width:100%;"/></div>
+        <div><div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">TYPE</div><select id="blokType" class="session-bar input" style="width:100%;cursor:pointer;"><option value="programma">Programma</option><option value="ontvangst">Ontvangst</option><option value="pauze">Pauze</option><option value="lunch">Lunch</option><option value="diner">Diner</option><option value="overig">Overig</option></select></div>
+      </div>
+      <div style="margin-bottom:10px;"><div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">NAAM</div><input id="blokNaam" class="session-bar input" placeholder="bijv. Ontvangst gasten" style="width:100%;"/></div>
+      <div style="margin-bottom:16px;"><div style="font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px;">OMSCHRIJVING (optioneel)</div><textarea id="blokOmschrijving" class="session-bar input" placeholder="Extra toelichting..." style="width:100%;min-height:70px;resize:vertical;"></textarea></div>
+      <button onclick="saveBlok()" class="abtn pri" style="width:100%;margin-bottom:8px;">OPSLAAN</button>
+      <button id="blokDeleteBtn" onclick="deleteBlok()" class="abtn sec" style="width:100%;margin-bottom:8px;color:#e74c3c;border-color:#e74c3c;display:none;">VERWIJDEREN</button>
+      <button onclick="closeBlokForm()" class="abtn sec" style="width:100%;">ANNULEREN</button>
     </div>
   </div>
 
@@ -579,6 +605,10 @@ async function initialiseerMice() {
   }
 }
 
+function stripHtml(html){var t=document.createElement('div');t.innerHTML=html||'';return t.textContent||t.innerText||'';}
+function bepaalType(naam){naam=(naam||'').toLowerCase();if(naam.includes('ontvangst')||naam.includes('welkom'))return 'ontvangst';if(naam.includes('pauze')||naam.includes('break')||naam.includes('koffie'))return 'pauze';if(naam.includes('lunch'))return 'lunch';if(naam.includes('diner')||naam.includes('dinner'))return 'diner';return 'programma';}
+function laadDraaiboekVanMice(activities){if(!activities||!activities.length)return;draaiboekItems=activities.filter(a=>a.datetime_start).sort((a,b)=>a.datetime_start.localeCompare(b.datetime_start)).map(a=>({tijd:a.datetime_start.slice(11,16),naam:a.name||'',omschrijving:stripHtml(a.description).trim(),type:bepaalType(a.name),locatie:a.location?a.location.name:''}));renderDraaiboek();showToast('✓ Draaiboek geladen ('+draaiboekItems.length+' blokken)');}
+
 async function laadReservering() {
   const select = document.getElementById('miceResList');
   const resId = select.value;
@@ -612,6 +642,7 @@ async function laadReservering() {
     if(miceSelect) miceSelect.style.borderColor = 'var(--gold)';
 
     showToast('✓ ' + naam + ' geladen');
+    if(res.activities && res.activities.length) laadDraaiboekVanMice(res.activities);
   }
 }
 
@@ -994,7 +1025,8 @@ function switchTab(tab){
     b.classList.toggle('active',['drinks','afspraken','checklist','draaiboek','prijzen','mice'][i]===tab);
   });
   if(tab==='afspraken') updateSummary();
-  if(tab==='draaiboek') laadDraaiboek();
+  if(tab==='checklist') buildChecklist();
+  if(tab==='draaiboek') renderDraaiboek();
   if(tab==='prijzen') buildPriceEditor();
 }
 
@@ -1221,8 +1253,13 @@ const _n=new Date();
 document.getElementById('datum').value=_n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
 document.getElementById('starttijd').value=String(_n.getHours()).padStart(2,'0')+':'+String(_n.getMinutes()).padStart(2,'0');
 setTimeout(initialiseerMice, 500);
-var draaiboekItems=[];var editBlokIdx=null;var BT={programma:{label:"Programma",color:"#2563eb"},ontvangst:{label:"Ontvangst",color:"#059669"},pauze:{label:"Pauze",color:"#7c3aed"},lunch:{label:"Lunch",color:"#d97706"},diner:{label:"Diner",color:"#b91c1c"},overig:{label:"Overig",color:"#6b7280"}};function renderDraaiboek(){var c=document.getElementById("draaiboekContent"),p=document.getElementById("draaiboekProgress");if(!c)return;if(!draaiboekItems.length){c.innerHTML='<div style="color:var(--muted);font-size:14px;text-align:center;padding:40px 20px;">Klik op + Blok om te beginnen.</div>';if(p)p.style.display="none";return;}var now=new Date(),ns=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0"),sorted=[...draaiboekItems].sort(function(a,b){return a.tijd.localeCompare(b.tijd);}),cur=-1;sorted.forEach(function(it,i){if(it.tijd<=ns)cur=i;});if(p){p.style.display="block";var pt=document.getElementById("draaiboekProgressTxt"),pb=document.getElementById("draaiboekProgressBar");if(pt)pt.textContent=(cur+1)+"/"+sorted.length+" blokken";if(pb)pb.style.width=(sorted.length>0?Math.round((cur+1)/sorted.length*100):0)+"%";}var html="";sorted.forEach(function(it,i){var isNow=i===cur,isPast=it.tijd<ns&&!isNow,t=BT[it.type]||BT.overig,oi=draaiboekItems.indexOf(it);html+='<div onclick="openBlokForm('+oi+')" style="position:relative;margin-bottom:10px;padding-left:20px;cursor:pointer;"><div style="position:absolute;left:0;top:16px;width:10px;height:10px;border-radius:50%;background:'+(isNow?"var(--gold)":isPast?"#3a5070":"var(--bg3)")+';border:2px solid '+(isNow?"var(--gold)":isPast?"#4a6080":"var(--border)")+'"></div><div style="background:'+(isNow?"rgba(232,160,32,0.1)":"var(--card)")+';border:1.5px solid '+(isNow?"var(--gold)":"var(--border)")+';border-radius:10px;padding:12px 14px;opacity:'+(isPast?"0.6":"1")+'"><div style="font-size:13px;color:var(--gold);">'+it.tijd+(isNow?" - NU":"")+'</div><div style="font-size:15px;color:var(--text);margin-top:2px;">'+it.naam+'</div>'+(it.omschrijving?'<div style="font-size:13px;color:var(--muted);margin-top:4px;">'+it.omschrijving+'</div>':"")+'<span style="font-size:10px;font-weight:bold;border-radius:4px;padding:2px 8px;margin-top:6px;display:inline-block;background:'+t.color+'33;color:'+t.color+';">'+t.label.toUpperCase()+'</span></div></div>';});c.innerHTML=html;}function openBlokForm(idx){editBlokIdx=idx;var it=idx!==null?draaiboekItems[idx]:null;document.getElementById("blokFormTitle").textContent=idx!==null?"BLOK BEWERKEN":"BLOK TOEVOEGEN";document.getElementById("blokTijd").value=it?it.tijd:"";document.getElementById("blokNaam").value=it?it.naam:"";document.getElementById("blokOmschrijving").value=it&&it.omschrijving?it.omschrijving:"";document.getElementById("blokType").value=it?it.type:"programma";document.getElementById("blokDeleteBtn").style.display=idx!==null?"block":"none";document.getElementById("blokOverlay").style.display="flex";}function closeBlokForm(){document.getElementById("blokOverlay").style.display="none";}function saveBlok(){var tijd=document.getElementById("blokTijd").value,naam=document.getElementById("blokNaam").value.trim();if(!tijd||!naam){showToast("Vul tijdstip en naam in");return;}var it={tijd:tijd,naam:naam,omschrijving:document.getElementById("blokOmschrijving").value.trim(),type:document.getElementById("blokType").value};if(editBlokIdx!==null){draaiboekItems[editBlokIdx]=it;}else{draaiboekItems.push(it);}closeBlokForm();renderDraaiboek();}function deleteBlok(){if(editBlokIdx!==null){draaiboekItems.splice(editBlokIdx,1);closeBlokForm();renderDraaiboek();}}
+var draaiboekItems=[];var editBlokIdx=null;
+var BT={programma:{label:"Programma",color:"#2563eb"},ontvangst:{label:"Ontvangst",color:"#059669"},pauze:{label:"Pauze",color:"#7c3aed"},lunch:{label:"Lunch",color:"#d97706"},diner:{label:"Diner",color:"#b91c1c"},overig:{label:"Overig",color:"#6b7280"}};
+function renderDraaiboek(){var c=document.getElementById("draaiboekContent"),p=document.getElementById("draaiboekProgress");if(!c)return;if(!draaiboekItems.length){c.innerHTML='<div style="color:var(--muted);font-size:14px;text-align:center;padding:40px 20px;">Klik op + Blok om te beginnen.</div>';if(p)p.style.display="none";return;}var now=new Date(),ns=String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0"),sorted=[...draaiboekItems].sort(function(a,b){return a.tijd.localeCompare(b.tijd);}),cur=-1;sorted.forEach(function(it,i){if(it.tijd<=ns)cur=i;});if(p){p.style.display="block";var pt=document.getElementById("draaiboekProgressTxt"),pb=document.getElementById("draaiboekProgressBar");if(pt)pt.textContent=(cur+1)+"/"+sorted.length+" blokken";if(pb)pb.style.width=(sorted.length>0?Math.round((cur+1)/sorted.length*100):0)+"%";}var html="";sorted.forEach(function(it,i){var isNow=i===cur,isPast=it.tijd<ns&&!isNow,t=BT[it.type]||BT.overig,oi=draaiboekItems.indexOf(it);html+='<div onclick="openBlokForm('+oi+')" style="position:relative;margin-bottom:10px;padding-left:20px;cursor:pointer;"><div style="position:absolute;left:0;top:16px;width:10px;height:10px;border-radius:50%;background:'+(isNow?"var(--gold)":isPast?"#3a5070":"var(--bg3)")+';border:2px solid '+(isNow?"var(--gold)":isPast?"#4a6080":"var(--border)")+'"></div><div style="background:'+(isNow?"rgba(232,160,32,0.1)":"var(--card)")+';border:1.5px solid '+(isNow?"var(--gold)":"var(--border)")+';border-radius:10px;padding:12px 14px;opacity:'+(isPast?"0.6":"1")+'"><div style="font-size:13px;color:var(--gold);">'+it.tijd+(isNow?" - NU":"")+'</div><div style="font-size:15px;color:var(--text);margin-top:2px;">'+it.naam+'</div>'+(it.omschrijving?'<div style="font-size:13px;color:var(--muted);margin-top:4px;">'+it.omschrijving+'</div>':"")+(it.locatie?'<span style="font-size:10px;color:var(--muted);margin-top:2px;display:block;">📍 '+it.locatie+'</span>':'')+' <span style="font-size:10px;font-weight:bold;border-radius:4px;padding:2px 8px;margin-top:6px;display:inline-block;background:'+t.color+'33;color:'+t.color+';">'+t.label.toUpperCase()+'</span></div></div>';});c.innerHTML=html;}
+function openBlokForm(idx){editBlokIdx=idx;var it=idx!==null?draaiboekItems[idx]:null;document.getElementById("blokFormTitle").textContent=idx!==null?"BLOK BEWERKEN":"BLOK TOEVOEGEN";document.getElementById("blokTijd").value=it?it.tijd:"";document.getElementById("blokNaam").value=it?it.naam:"";document.getElementById("blokOmschrijving").value=it&&it.omschrijving?it.omschrijving:"";document.getElementById("blokType").value=it?it.type:"programma";document.getElementById("blokDeleteBtn").style.display=idx!==null?"block":"none";document.getElementById("blokOverlay").style.display="flex";}
+function closeBlokForm(){document.getElementById("blokOverlay").style.display="none";}
+function saveBlok(){var tijd=document.getElementById("blokTijd").value,naam=document.getElementById("blokNaam").value.trim();if(!tijd||!naam){showToast("Vul tijdstip en naam in");return;}var it={tijd:tijd,naam:naam,omschrijving:document.getElementById("blokOmschrijving").value.trim(),type:document.getElementById("blokType").value};if(editBlokIdx!==null){draaiboekItems[editBlokIdx]=it;}else{draaiboekItems.push(it);}closeBlokForm();renderDraaiboek();}
+function deleteBlok(){if(editBlokIdx!==null){draaiboekItems.splice(editBlokIdx,1);closeBlokForm();renderDraaiboek();}}
 </script>
-  <script src="/draaiboek.js"></script>
 </body>
 </html>
