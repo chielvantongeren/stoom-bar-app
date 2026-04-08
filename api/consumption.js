@@ -24,39 +24,34 @@ export default async function handler(req, res) {
   // Stap 1: POS setup
   try {
     await fetch(`${baseUrl}/pos/${reservation_id}/setup`, {
-      method: 'POST',
-      headers,
+      method: 'POST', headers,
       body: JSON.stringify({ date: today })
     });
   } catch(e) {}
 
-  // Stap 2: Bouw items op — stukprijs per consumptie, amount = aantal
+  // Stap 2: Bouw items op — alleen positieve counts, prosecco alleen als tap (niet als afspraak toggle)
   const items = [];
-
   for (const [key, count] of Object.entries(counts || {})) {
+    // Sla over als count niet positief is
     if (!count || count <= 0) continue;
     const d = (drinks || {})[key];
     if (!d) continue;
-
-    const priceIncl  = parseFloat((d.price || 0).toFixed(2));
-    const vatRate    = (d.vat || 0) / 100;
-    const priceExcl  = parseFloat((d.priceExcl || priceIncl / (1 + vatRate)).toFixed(2));
-    const vatAmount  = parseFloat((priceIncl - priceExcl).toFixed(2));
-    const ledger     = vatRate === 0.21 ? '8302' : vatRate === 0.09 ? '8301' : '';
-
+    const priceIncl = parseFloat((d.price || 0).toFixed(2));
+    const vatRate = (d.vat || 0) / 100;
+    const priceExcl = parseFloat((d.priceExcl || priceIncl / (1 + vatRate)).toFixed(2));
+    const vatAmount = parseFloat((priceIncl - priceExcl).toFixed(2));
+    const ledger = vatRate === 0.21 ? '8302' : vatRate === 0.09 ? '8301' : '';
     items.push({
       object_type: 'product',
       object_code: String(d.miceId || key),
       name: d.label,
-      amount: count,           // aantal consumpties
+      amount: count,
       date: today,
-      vat_rates: [
-        {
-          price: priceIncl,    // stukprijs incl BTW per consumptie
-          vat_rate: vatRate,
-          general_ledger_number: ledger
-        }
-      ]
+      vat_rates: [{
+        price: priceIncl,
+        vat_rate: vatRate,
+        general_ledger_number: ledger
+      }]
     });
   }
 
@@ -67,35 +62,15 @@ export default async function handler(req, res) {
   // Stap 3: POS receipt versturen
   try {
     const response = await fetch(`${baseUrl}/pos/${reservation_id}/receipt`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        date: today,
-        synced: false,
-        billed: false,
-        identifier: bonNummer,
-        items
-      })
+      method: 'POST', headers,
+      body: JSON.stringify({ date: today, synced: false, billed: false, identifier: bonNummer, items })
     });
-
     const data = await response.json();
-
     if (response.ok && data.page?.status === 'success') {
-      return res.status(200).json({
-        success: true,
-        message: `${items.length} product(en) opgeslagen in MICE`,
-        bonNummer,
-        items_sent: items
-      });
+      return res.status(200).json({ success: true, message: `${items.length} product(en) opgeslagen in MICE`, bonNummer, items_sent: items });
     } else {
-      return res.status(200).json({
-        success: false,
-        error: data.page?.message || 'Onbekende fout van MICE',
-        detail: data,
-        items_sent: items
-      });
+      return res.status(200).json({ success: false, error: data.page?.message || 'Onbekende fout van MICE', detail: data, items_sent: items });
     }
-
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
