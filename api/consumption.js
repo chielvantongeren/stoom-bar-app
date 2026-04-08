@@ -29,23 +29,23 @@ export default async function handler(req, res) {
     });
   } catch(e) {}
 
-  // Stap 2: Bouw items op — alleen positieve counts, prosecco alleen als tap (niet als afspraak toggle)
+  // Stap 2: Bouw items — alleen strikt positieve integers, nooit negatief
+  // Prosecco als welkomst-toggle heeft count 0 of negatief — wordt hier gefilterd
   const items = [];
   for (const [key, count] of Object.entries(counts || {})) {
-    // Sla over als count niet positief is
-    if (!count || count <= 0) continue;
+    const n = parseInt(count, 10);
+    if (!n || n <= 0) continue; // Filter alles wat niet strikt positief is
     const d = (drinks || {})[key];
-    if (!d) continue;
+    if (!d || !d.miceId) continue;
     const priceIncl = parseFloat((d.price || 0).toFixed(2));
     const vatRate = (d.vat || 0) / 100;
     const priceExcl = parseFloat((d.priceExcl || priceIncl / (1 + vatRate)).toFixed(2));
-    const vatAmount = parseFloat((priceIncl - priceExcl).toFixed(2));
     const ledger = vatRate === 0.21 ? '8302' : vatRate === 0.09 ? '8301' : '';
     items.push({
       object_type: 'product',
-      object_code: String(d.miceId || key),
+      object_code: String(d.miceId),
       name: d.label,
-      amount: count,
+      amount: n,
       date: today,
       vat_rates: [{
         price: priceIncl,
