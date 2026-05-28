@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   try {
     let allItems = [], page = 1, totalPages = 1;
     while (page <= totalPages && page <= 12) {
-      const url = `${baseUrl}/events?limit=100&page=${page}&include_activities=true&include_setup=true&include_location=true`;
+      const url = `${baseUrl}/events?limit=100&page=${page}&include_activities=true&include_location=true&include_products=true`;
       const r = await fetch(url, { headers });
       const data = await r.json();
       const items = data.data || [];
