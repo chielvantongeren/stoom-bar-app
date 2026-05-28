@@ -622,6 +622,56 @@ async function initialiseerMice() {
 
 function stripHtml(html){var t=document.createElement('div');t.innerHTML=html||'';return t.textContent||t.innerText||'';}
 function bepaalType(naam){naam=(naam||'').toLowerCase();if(naam.includes('ontvangst')||naam.includes('welkom'))return 'ontvangst';if(naam.includes('pauze')||naam.includes('break')||naam.includes('koffie'))return 'pauze';if(naam.includes('lunch'))return 'lunch';if(naam.includes('diner')||naam.includes('dinner'))return 'diner';return 'programma';}
+function laadAfsprakenVanMice(activities){
+  if(!activities||!activities.length) return;
+  // Verzamel alle productnamen uit alle activiteiten
+  var producten = [];
+  activities.forEach(a => {
+    (a.products||[]).forEach(p => producten.push({naam:(p.name||'').toLowerCase().trim(), qty:p.amount||1}));
+  });
+
+  // Koppel productnamen aan afspraken toggles
+  producten.forEach(p => {
+    var n = p.naam;
+    if(n.includes('prosecco')||n.includes('bubbel')||n.includes('champagne')||n.includes('welkomst')) {
+      af.prosecco = true;
+    }
+    if(n.includes('nootje')||n.includes('zoutje')) {
+      af.nootjes = true;
+    }
+    if(n.includes('olijf')||n.includes('kaas')) {
+      af.olijven = true;
+    }
+    if(n.includes('bitter')||n.includes('bittergarnituur')) {
+      af.bitter = Math.max(af.bitter, 1);
+    }
+    if(n.includes('koude hapje')||n.includes('koude luxe')) {
+      af.koude = Math.max(af.koude, 1);
+    }
+    if(n.includes('eind snack')||n.includes('eindsnack')||n.includes('avondsnack')) {
+      af.eindsnack = true;
+    }
+  });
+
+  // Update de UI
+  ['prosecco','nootjes','olijven'].forEach(k => {
+    var tog = document.getElementById('tog-'+k);
+    if(tog) tog.classList.toggle('on', af[k]);
+  });
+  // Bitter aantal
+  if(af.bitter > 0) {
+    var bitterEl = document.getElementById('bitter-count');
+    if(bitterEl) bitterEl.textContent = af.bitter;
+  }
+  // Koude hapjes
+  if(af.koude > 0) {
+    var koudeEl = document.getElementById('koude-count');
+    if(koudeEl) koudeEl.textContent = af.koude;
+  }
+  updateSummary();
+  showToast('✓ Afspraken geladen uit MICE');
+}
+
 function laadDraaiboekVanMice(activities){if(!activities||!activities.length)return;draaiboekItems=activities.filter(a=>a.datetime_start).sort((a,b)=>a.datetime_start.localeCompare(b.datetime_start)).map(a=>({tijd:a.datetime_start.slice(11,16),naam:a.name||'',omschrijving:stripHtml(a.description).trim(),type:bepaalType(a.name),locatie:a.location?a.location.name:''}));renderDraaiboek();showToast('✓ Draaiboek geladen ('+draaiboekItems.length+' blokken)');}
 
 async function laadReservering() {
@@ -657,7 +707,7 @@ async function laadReservering() {
     if(miceSelect) miceSelect.style.borderColor = 'var(--gold)';
 
     showToast('✓ ' + naam + ' geladen');
-    if(res.activities && res.activities.length) laadDraaiboekVanMice(res.activities);
+    if(res.activities && res.activities.length) { laadDraaiboekVanMice(res.activities); laadAfsprakenVanMice(res.activities); }
   }
 }
 
