@@ -21,20 +21,10 @@ export default async function handler(req, res) {
   const today = new Date().toISOString().slice(0, 10);
   const bonNummer = `STOOM-${Date.now()}`;
 
-  // Stap 1: POS setup
-  try {
-    await fetch(`${baseUrl}/pos/${reservation_id}/setup`, {
-      method: 'POST', headers,
-      body: JSON.stringify({ date: today })
-    });
-  } catch(e) {}
-
-  // Stap 2: Bouw items — alleen strikt positieve integers, nooit negatief
-  // Prosecco als welkomst-toggle heeft count 0 of negatief — wordt hier gefilterd
   const items = [];
   for (const [key, count] of Object.entries(counts || {})) {
     const n = parseInt(count, 10);
-    if (!n || n <= 0) continue; // Filter alles wat niet strikt positief is
+    if (!n || n <= 0) continue;
     const d = (drinks || {})[key];
     if (!d || !d.miceId) continue;
     const priceIncl = parseFloat((d.price || 0).toFixed(2));
@@ -47,11 +37,7 @@ export default async function handler(req, res) {
       name: d.label,
       amount: n,
       date: today,
-      vat_rates: [{
-        price: priceIncl,
-        vat_rate: vatRate,
-        general_ledger_number: ledger
-      }]
+      vat_rates: [{ price: priceIncl, vat_rate: vatRate, general_ledger_number: ledger }]
     });
   }
 
@@ -59,7 +45,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Geen consumpties om te registreren' });
   }
 
-  // Stap 3: POS receipt versturen
+  // Geen POS setup — voorkomt concept-factuur in MICE
   try {
     const response = await fetch(`${baseUrl}/pos/${reservation_id}/receipt`, {
       method: 'POST', headers,
