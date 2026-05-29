@@ -300,7 +300,73 @@ html,body{height:100%;background:#132d4a;}
   </div>
 
   <!-- AFSPRAKEN TAB -->
-  <div class="tab-content" id="tab-tafels"><div style="text-align:center;padding:40px 20px;color:var(--dimmed);font-family:'Oswald',sans-serif;font-size:14px;">🪑 TAFELS &amp; BONNEN<br><span style="font-size:12px;display:block;margin-top:8px;">Komt binnenkort beschikbaar</span></div></div>
+  <div class="tab-content" id="tab-tafels">
+  <!-- OVERZICHT -->
+  <div id="tafels-overzicht">
+    <div id="tafels-lijst"></div>
+    <button onclick="openNieuweBon()" style="width:100%;margin-top:8px;padding:12px;background:var(--bg2);border:1.5px dashed var(--border2);border-radius:10px;color:var(--dimmed);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <span style="font-size:20px;">+</span> Nieuwe bon aanmaken
+    </button>
+    <div id="tafels-totaal" style="display:none;background:var(--bg3);border-radius:10px;padding:10px 14px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);">Totaal open</span>
+      <span id="tafels-totaal-bedrag" style="font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);font-weight:700;">€ 0,00</span>
+    </div>
+  </div>
+
+  <!-- NIEUWE BON FORMULIER -->
+  <div id="tafels-nieuw" style="display:none;">
+    <div onclick="sluitNieuweBon()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dimmed);cursor:pointer;margin-bottom:10px;">← Terug</div>
+    <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:var(--text);margin-bottom:12px;">Nieuwe bon</div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;">
+      <div style="font-size:12px;color:var(--dimmed);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;">Naam tafel of gast</div>
+      <input id="nieuwe-bon-naam" type="text" placeholder="bijv. Tafel 5, Jan de Vries, VIP..." autocomplete="off"
+        style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;margin-bottom:14px;"/>
+      <button onclick="maakNieuweBon()" style="width:100%;padding:12px;background:var(--bg3);border:none;border-radius:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+        Bon aanmaken
+      </button>
+    </div>
+  </div>
+
+  <!-- BON DETAIL -->
+  <div id="tafels-bon" style="display:none;">
+    <div onclick="sluitBon()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dimmed);cursor:pointer;margin-bottom:10px;">← Terug naar overzicht</div>
+    <div style="background:var(--bg3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">Openstaande bon</div>
+        <div id="bon-titel" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-top:2px;"></div>
+      </div>
+      <div id="bon-totaal-badge" style="font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);font-weight:700;"></div>
+    </div>
+
+    <!-- Drankjes toevoegen -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Toevoegen aan bon</div>
+      <div id="bon-drink-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+      <button onclick="voegToeAanBon()" style="width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:none;border-radius:8px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+        + Toevoegen aan bon
+      </button>
+    </div>
+
+    <!-- Lopende bon -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
+      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Lopende bon</div>
+      <div id="bon-regels"></div>
+    </div>
+
+    <!-- Acties -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button onclick="bonQR()" style="padding:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+        💳 QR Betaalverzoek
+      </button>
+      <button onclick="bonOpslaan()" style="padding:11px;background:var(--gold);border:none;border-radius:10px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+        💾 Opslaan MICE
+      </button>
+    </div>
+    <button onclick="sluitBonAf()" style="width:100%;margin-top:8px;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+      ✓ Bon afsluiten
+    </button>
+  </div>
+</div></div>
 <div class="tab-content" id="tab-afspraken">
     <div class="af-summary-section">
       <div class="sec-title" style="margin-top:0;">Overzicht afspraken</div>
@@ -1079,6 +1145,7 @@ function switchTab(tab){
   });
   if(tab==='afspraken') updateSummary();
   if(tab==='checklist') buildChecklist();
+  if(tab==='tafels') renderTafelsOverzicht();
   if(tab==='draaiboek') renderDraaiboek();
   if(tab==='prijzen') buildPriceEditor();
 }
@@ -1313,6 +1380,215 @@ function openBlokForm(idx){editBlokIdx=idx;var it=idx!==null?draaiboekItems[idx]
 function closeBlokForm(){document.getElementById("blokOverlay").style.display="none";}
 function saveBlok(){var tijd=document.getElementById("blokTijd").value,naam=document.getElementById("blokNaam").value.trim();if(!tijd||!naam){showToast("Vul tijdstip en naam in");return;}var it={tijd:tijd,naam:naam,omschrijving:document.getElementById("blokOmschrijving").value.trim(),type:document.getElementById("blokType").value};if(editBlokIdx!==null){draaiboekItems[editBlokIdx]=it;}else{draaiboekItems.push(it);}closeBlokForm();renderDraaiboek();}
 function deleteBlok(){if(editBlokIdx!==null){draaiboekItems.splice(editBlokIdx,1);closeBlokForm();renderDraaiboek();}}
+
+// ── TAFELS & BONNEN ──────────────────────────────────────────
+let tafels = []; // [{id, naam, regels:[{key,label,qty,price}], gesloten, timestamp}]
+let activeBonId = null;
+let bonCounts = {};
+
+function renderTafelsOverzicht() {
+  const lijst = document.getElementById('tafels-lijst');
+  if (!lijst) return;
+  const open = tafels.filter(t => !t.gesloten);
+  const gesloten = tafels.filter(t => t.gesloten);
+  let html = '';
+
+  if (tafels.length === 0) {
+    html = '<div style="text-align:center;padding:30px;color:var(--dimmed);font-size:14px;">Nog geen bonnen aangemaakt</div>';
+  }
+
+  open.forEach(t => {
+    const totaal = bonTotaal(t);
+    html += `<div onclick="openBon(${t.id})" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:15px;color:var(--text);">${t.naam}</div>
+        <div style="font-size:12px;color:var(--dimmed);margin-top:2px;">${t.regels.length} item(s) · ${t.tijd}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--gold);">€ ${totaal.toFixed(2).replace('.',',')}</div>
+        <div style="font-size:11px;padding:2px 8px;background:var(--gold)22;color:var(--gold);border-radius:6px;margin-top:4px;font-family:'Oswald',sans-serif;letter-spacing:.5px;">OPEN</div>
+      </div>
+    </div>`;
+  });
+
+  gesloten.forEach(t => {
+    const totaal = bonTotaal(t);
+    html += `<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;opacity:.6;">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:15px;color:var(--text);">${t.naam}</div>
+        <div style="font-size:12px;color:var(--dimmed);margin-top:2px;">Afgesloten · ${t.tijd}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--dimmed);">€ ${totaal.toFixed(2).replace('.',',')}</div>
+        <div style="font-size:11px;padding:2px 8px;background:var(--bg3);color:var(--dimmed);border-radius:6px;margin-top:4px;font-family:'Oswald',sans-serif;letter-spacing:.5px;">AFGESLOTEN</div>
+      </div>
+    </div>`;
+  });
+
+  lijst.innerHTML = html;
+
+  // Totaalbalk
+  const totaalEl = document.getElementById('tafels-totaal');
+  const totaalBedrag = document.getElementById('tafels-totaal-bedrag');
+  if (open.length > 0) {
+    const totaal = open.reduce((sum, t) => sum + bonTotaal(t), 0);
+    totaalEl.style.display = 'flex';
+    totaalBedrag.textContent = '€ ' + totaal.toFixed(2).replace('.', ',');
+  } else {
+    totaalEl.style.display = 'none';
+  }
+}
+
+function bonTotaal(bon) {
+  return bon.regels.reduce((sum, r) => sum + (r.qty * r.price), 0);
+}
+
+function openNieuweBon() {
+  document.getElementById('tafels-overzicht').style.display = 'none';
+  document.getElementById('tafels-nieuw').style.display = 'block';
+  document.getElementById('nieuwe-bon-naam').value = '';
+  document.getElementById('nieuwe-bon-naam').focus();
+}
+
+function sluitNieuweBon() {
+  document.getElementById('tafels-overzicht').style.display = 'block';
+  document.getElementById('tafels-nieuw').style.display = 'none';
+}
+
+function maakNieuweBon() {
+  const naam = document.getElementById('nieuwe-bon-naam').value.trim();
+  if (!naam) { showToast('Vul een naam in'); return; }
+  const nu = new Date();
+  const tijd = nu.getHours() + ':' + String(nu.getMinutes()).padStart(2,'0');
+  const bon = { id: Date.now(), naam, regels: [], gesloten: false, tijd };
+  tafels.push(bon);
+  sluitNieuweBon();
+  openBon(bon.id);
+}
+
+function openBon(id) {
+  activeBonId = id;
+  bonCounts = {};
+  const bon = tafels.find(t => t.id === id);
+  if (!bon) return;
+
+  document.getElementById('tafels-overzicht').style.display = 'none';
+  document.getElementById('tafels-nieuw').style.display = 'none';
+  document.getElementById('tafels-bon').style.display = 'block';
+  document.getElementById('bon-titel').textContent = bon.naam;
+
+  // Bouw drink grid
+  const grid = document.getElementById('bon-drink-grid');
+  grid.innerHTML = Object.entries(drinks).map(([k,d]) => `
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;">
+      <span style="font-size:18px;">${d.emoji}</span>
+      <span style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:var(--text);line-height:1.1;">${d.label}</span>
+      <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+        <button onclick="bonTap('${k}',-1)" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);background:none;color:var(--dimmed);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="bc-${k}" style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:var(--text);min-width:16px;text-align:center;">0</span>
+        <button onclick="bonTap('${k}',1)" style="width:20px;height:20px;border-radius:50%;background:var(--bg3);border:none;color:var(--gold);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+    </div>`).join('');
+
+  renderBonRegels(bon);
+}
+
+function bonTap(key, dir) {
+  bonCounts[key] = Math.max(0, (bonCounts[key] || 0) + dir);
+  const el = document.getElementById('bc-' + key);
+  if (el) el.textContent = bonCounts[key];
+}
+
+function voegToeAanBon() {
+  const bon = tafels.find(t => t.id === activeBonId);
+  if (!bon) return;
+  let toegevoegd = 0;
+  Object.entries(bonCounts).forEach(([k, qty]) => {
+    if (qty > 0) {
+      const d = drinks[k];
+      const bestaand = bon.regels.find(r => r.key === k);
+      if (bestaand) { bestaand.qty += qty; }
+      else { bon.regels.push({ key: k, label: d.label, qty, price: d.price }); }
+      toegevoegd += qty;
+    }
+  });
+  if (toegevoegd === 0) { showToast('Niets geselecteerd'); return; }
+  // Reset tellers
+  bonCounts = {};
+  document.querySelectorAll('[id^="bc-"]').forEach(el => el.textContent = '0');
+  renderBonRegels(bon);
+  showToast('✓ Toegevoegd aan bon');
+}
+
+function renderBonRegels(bon) {
+  const el = document.getElementById('bon-regels');
+  const badge = document.getElementById('bon-totaal-badge');
+  if (!el) return;
+  if (bon.regels.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--dimmed);font-size:13px;">Nog niets op deze bon</div>';
+    badge.textContent = '€ 0,00';
+    return;
+  }
+  const totaal = bonTotaal(bon);
+  el.innerHTML = bon.regels.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border2);font-size:13px;">
+      <span style="color:var(--dimmed);">${r.qty}x ${r.label}</span>
+      <span style="color:var(--text);font-weight:500;">€ ${(r.qty * r.price).toFixed(2).replace('.',',')}</span>
+    </div>`).join('') +
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-family:'Oswald',sans-serif;">
+      <span style="color:var(--dimmed);font-size:13px;">Totaal</span>
+      <span style="font-size:18px;color:var(--gold);">€ ${totaal.toFixed(2).replace('.',',')}</span>
+    </div>`;
+  badge.textContent = '€ ' + totaal.toFixed(2).replace('.', ',');
+}
+
+function sluitBon() {
+  activeBonId = null;
+  document.getElementById('tafels-bon').style.display = 'none';
+  document.getElementById('tafels-overzicht').style.display = 'block';
+  renderTafelsOverzicht();
+}
+
+function sluitBonAf() {
+  const bon = tafels.find(t => t.id === activeBonId);
+  if (!bon) return;
+  bon.gesloten = true;
+  showToast('✓ Bon afgesloten');
+  sluitBon();
+}
+
+async function bonOpslaan() {
+  const bon = tafels.find(t => t.id === activeBonId);
+  if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
+  if (!miceReservationId) { showToast('Laad eerst een event via MICE'); return; }
+  const counts = {};
+  bon.regels.forEach(r => counts[r.key] = r.qty);
+  try {
+    const resp = await micePost('/consumption', { reservation_id: miceReservationId, counts, drinks });
+    if (resp.success) {
+      showToast('✓ ' + bon.naam + ' opgeslagen in MICE');
+      bon.gesloten = true;
+      sluitBon();
+    } else {
+      showToast('Fout: ' + (resp.error || 'onbekend'));
+    }
+  } catch(e) {
+    showToast('Fout bij opslaan: ' + e.message);
+  }
+}
+
+function bonQR() {
+  const bon = tafels.find(t => t.id === activeBonId);
+  if (!bon) return;
+  const totaal = bonTotaal(bon);
+  const klant = document.getElementById('klant')?.value || 'STOOM';
+  const omschrijving = encodeURIComponent(bon.naam + ' - ' + klant);
+  const bedrag = totaal.toFixed(2);
+  // Mollie betaalverzoek
+  const url = `https://stoom-bar-app.vercel.app/api/mollie?amount=${bedrag}&description=${omschrijving}`;
+  window.open(url, '_blank');
+}
+
 </script>
 </body>
 </html>
