@@ -64,16 +64,16 @@ html,body{height:100%;background:#132d4a;}
 .sec-label{font-family:'Oswald',sans-serif;font-weight:600;font-size:clamp(9px,1.2vw,12px);letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:6px;}
 .drink-grid{display:none;}
 @media(min-width:700px){}
-.drink-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px 4px;cursor:pointer;text-align:center;transition:background .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;-webkit-user-select:none;user-select:none;width:100%;aspect-ratio:1/1;}
+.drink-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0;cursor:pointer;text-align:center;transition:background .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;-webkit-user-select:none;user-select:none;width:100%;aspect-ratio:1/1;}
 @media(min-width:700px){}
 .drink-btn:active{transform:scale(.94);background:var(--bg2);border-color:var(--gold);}
 .drink-btn.lit{border-color:var(--gold);background:var(--bg2);}
-.d-icon{font-size:clamp(16px,3.5vw,28px);line-height:1;}
+.d-icon{font-size:clamp(14px,3vw,22px);line-height:1;}
 @media(min-width:700px){.d-icon{font-size:38px;}}
-.d-name{font-family:'Oswald',sans-serif;font-size:clamp(8px,1.3vw,12px);letter-spacing:.3px;text-transform:uppercase;color:var(--text);text-align:center;line-height:1.1;padding:0 2px;}
+.d-name{font-family:'Oswald',sans-serif;font-size:clamp(8px,1.1vw,11px);letter-spacing:.3px;text-transform:uppercase;color:var(--text);text-align:center;line-height:1.1;padding:0 2px;}
 @media(min-width:700px){.d-name{font-size:16px;}}
 .d-price{display:none;}
-.d-count{background:var(--gold);color:var(--bg3);border-radius:20px;padding:2px 8px;font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(12px,1.8vw,18px);min-width:24px;display:inline-block;}
+.d-count{background:var(--gold);color:var(--bg3);border-radius:20px;padding:1px 6px;font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(11px,1.5vw,15px);min-width:20px;display:inline-block;}
 @media(min-width:700px){.d-count{font-size:26px;}}
 .btn-row{display:flex;gap:10px;margin-top:12px;}
 .abtn{flex:1;padding:14px;border-radius:10px;border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;transition:all .15s;-webkit-user-select:none;user-select:none;}
@@ -117,7 +117,7 @@ html,body{height:100%;background:#132d4a;}
 .mail-info{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12px;color:var(--dimmed);text-align:center;line-height:1.6;}
 .mail-info span{color:var(--gold);}
 .undo-wrap{display:none;}
-.undo-btn-grid{background:var(--gold);border:none;border-radius:10px;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;-webkit-user-select:none;user-select:none;}
+.undo-btn-grid{background:var(--gold);border:1px solid var(--gold);border-radius:10px;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;aspect-ratio:1/1;-webkit-user-select:none;user-select:none;}
 .undo-btn-grid:active{transform:scale(0.94);opacity:.85;}
 
 .undo-icon{font-size:30px;line-height:1;}
@@ -250,32 +250,29 @@ html,body{height:100%;background:#132d4a;}
 
   <!-- DRINKS TAB -->
   <div class="tab-content active" id="tab-drinks">
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(5px,1.5vw,12px);">
-    <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:2px;">Warme dranken &amp; Fris</div>
-    <button class="drink-btn" onclick="tap('koffie')"><span class="d-icon">☕</span><span class="d-name">Koffie / Thee</span><span class="d-count" id="cnt-koffie">0</span></button>
-    <button class="drink-btn" onclick="tap('fris')"><span class="d-icon">🥤</span><span class="d-name">Frisdrank</span><span class="d-count" id="cnt-fris">0</span></button>
-    <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:2px;">Bier</div>
-    <button class="drink-btn" onclick="tap('bier')"><span class="d-icon">🍺</span><span class="d-name">Bier</span><span class="d-count" id="cnt-bier">0</span></button>
-    <button class="drink-btn" onclick="tap('bier00')"><span class="d-icon">🍺</span><span class="d-name">Bier 0.0</span><span class="d-count" id="cnt-bier00">0</span></button>
-    <button class="drink-btn" onclick="tap('speciaal')"><span class="d-icon">🍻</span><span class="d-name">Speciaal Bier</span><span class="d-count" id="cnt-speciaal">0</span></button>
-    <button class="drink-btn" onclick="tap('speciaal00')"><span class="d-icon">🍻</span><span class="d-name">Speciaal Bier 0.0</span><span class="d-count" id="cnt-speciaal00">0</span></button>
-    <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:2px;">Wijn, Bubbels &amp; Sterke Drank</div>
-    <button class="drink-btn" onclick="tap('wijn')"><span class="d-icon">🍷</span><span class="d-name">Wijn</span><span class="d-count" id="cnt-wijn">0</span></button>
-    <button class="drink-btn" onclick="tap('prosecco')"><span class="d-icon">🥂</span><span class="d-name">Prosecco</span><span class="d-count" id="cnt-prosecco">0</span></button>
-    <button class="drink-btn" onclick="tap('sterke')"><span class="d-icon">🥃</span><span class="d-name">Sterke Drank</span><span class="d-count" id="cnt-sterke">0</span></button>
-    <button class="drink-btn" onclick="tap('mix')"><span class="d-icon">🍹</span><span class="d-name">Mixdrankje</span><span class="d-count" id="cnt-mix">0</span></button>
-    <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:2px;">Hapjes &amp; Snacks</div>
-    <button class="drink-btn" onclick="tap('bitter')"><span class="d-icon">🫒</span><span class="d-name">Bittergarnituur</span><span class="d-count" id="cnt-bitter">0</span></button>
-    <button class="drink-btn" onclick="tap('borrel')"><span class="d-icon">🧀</span><span class="d-name">Borrelplank</span><span class="d-count" id="cnt-borrel">0</span></button>
-    <button class="drink-btn" onclick="tap('olijven')"><span class="d-icon">🫙</span><span class="d-name">Kaas / Olijven</span><span class="d-count" id="cnt-olijven">0</span></button>
-    <button class="drink-btn" onclick="tap('nootjes')"><span class="d-icon">🥜</span><span class="d-name">Nootjes / Zoutjes</span><span class="d-count" id="cnt-nootjes">0</span></button>
+  <div class="drink-grid-main">
+    <div class="sec-label" style="grid-column:1/-1">Warme dranken &amp; Fris</div>
+    <button class="drink-btn" onclick="tap('koffie')"><span class="d-icon">☕</span><span class="d-name">Koffie / Thee</span><span class="d-price" id="pr-koffie"></span><span class="d-count" id="cnt-koffie">0</span></button>
+    <button class="drink-btn" onclick="tap('fris')"><span class="d-icon">🥤</span><span class="d-name">Frisdrank</span><span class="d-price" id="pr-fris"></span><span class="d-count" id="cnt-fris">0</span></button>
+    <div class="sec-label" style="grid-column:1/-1">Bier</div>
+    <button class="drink-btn" onclick="tap('bier')"><span class="d-icon">🍺</span><span class="d-name">Bier</span><span class="d-price" id="pr-bier"></span><span class="d-count" id="cnt-bier">0</span></button>
+    <button class="drink-btn" onclick="tap('bier00')"><span class="d-icon">🍺</span><span class="d-name">Bier 0.0</span><span class="d-price" id="pr-bier00"></span><span class="d-count" id="cnt-bier00">0</span></button>
+    <button class="drink-btn" onclick="tap('speciaal')"><span class="d-icon">🍻</span><span class="d-name">Speciaal Bier</span><span class="d-price" id="pr-speciaal"></span><span class="d-count" id="cnt-speciaal">0</span></button>
+    <button class="drink-btn" onclick="tap('speciaal00')"><span class="d-icon">🍻</span><span class="d-name">Speciaal Bier 0.0</span><span class="d-price" id="pr-speciaal00"></span><span class="d-count" id="cnt-speciaal00">0</span></button>
+    <div class="sec-label" style="grid-column:1/-1">Wijn, Bubbels &amp; Sterke Drank</div>
+    <button class="drink-btn" onclick="tap('wijn')"><span class="d-icon">🍷</span><span class="d-name">Wijn</span><span class="d-price" id="pr-wijn"></span><span class="d-count" id="cnt-wijn">0</span></button>
+    <button class="drink-btn" onclick="tap('prosecco')"><span class="d-icon">🥂</span><span class="d-name">Prosecco</span><span class="d-price" id="pr-prosecco"></span><span class="d-count" id="cnt-prosecco">0</span></button>
+    <button class="drink-btn" onclick="tap('sterke')"><span class="d-icon">🥃</span><span class="d-name">Sterke Drank</span><span class="d-price" id="pr-sterke"></span><span class="d-count" id="cnt-sterke">0</span></button>
+    <button class="drink-btn" onclick="tap('mix')"><span class="d-icon">🍹</span><span class="d-name">Mixdrankje</span><span class="d-price" id="pr-mix"></span><span class="d-count" id="cnt-mix">0</span></button>
+    <div class="sec-label" style="grid-column:1/-1">Hapjes &amp; Snacks</div>
+    <button class="drink-btn" onclick="tap('bitter')"><span class="d-icon">🫒</span><span class="d-name">Bittergarnituur</span><span class="d-price" id="pr-bitter"></span><span class="d-count" id="cnt-bitter">0</span></button>
+    <button class="drink-btn" onclick="tap('borrel')"><span class="d-icon">🧀</span><span class="d-name">Borrelplank</span><span class="d-price" id="pr-borrel"></span><span class="d-count" id="cnt-borrel">0</span></button>
+    <button class="drink-btn" onclick="tap('olijven')"><span class="d-icon">🫙</span><span class="d-name">Kaas / Olijven</span><span class="d-price" id="pr-olijven"></span><span class="d-count" id="cnt-olijven">0</span></button>
+    <button class="drink-btn" onclick="tap('nootjes')"><span class="d-icon">🥜</span><span class="d-name">Nootjes / Zoutjes</span><span class="d-price" id="pr-nootjes"></span><span class="d-count" id="cnt-nootjes">0</span></button>
+    <button class="undo-btn-grid" onclick="undoLast()"><span class="undo-icon">↩</span><span class="undo-label">Ongedaan</span></button>
   </div>
-  <button class="undo-btn-grid" onclick="undoLast()" style="width:100%;margin-top:8px;height:44px;border-radius:10px;aspect-ratio:unset;flex-direction:row;gap:8px;">
-    <span class="undo-icon" style="font-size:18px;">↩</span>
-    <span class="undo-label" style="font-size:12px;letter-spacing:1px;">Ongedaan maken</span>
-  </button>
   <div class="undo-wrap"></div>
-<div class="kassa-banner" id="kassaBanner" style="display:none;">
+  <div class="kassa-banner" id="kassaBanner" style="display:none;">
       <div>
         <div class="kassa-label">💶 Kassatotaal</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="kassaAantal"></div>
