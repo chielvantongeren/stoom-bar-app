@@ -81,7 +81,8 @@ html,body{height:100%;background:#132d4a;}
 .abtn.mice{background:#2a5080;color:#fff;border:none;}
 .abtn:active{transform:scale(.97);}
 .abtn:disabled{opacity:.4;cursor:not-allowed;}
-.kassa-banner{background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:14px 18px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;}
+#tab-drinks{padding-bottom:50px;}
+.kassa-banner{background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:14px 18px;margin-top:30px;display:flex;justify-content:space-between;align-items:center;}
 .kassa-label{font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);}
 .kassa-amount{font-family:'Oswald',sans-serif;font-weight:700;font-size:38px;color:var(--gold);}
 .totals-card{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;margin-top:12px;}
@@ -310,6 +311,7 @@ html,body{height:100%;background:#132d4a;}
       </button>
     </div>
     <div class="undo-wrap"></div>
+    <div style="min-height:35vh;"></div>
     <div class="kassa-banner" id="kassaBanner" style="display:none;">
       <div>
         <div class="kassa-label">💶 Kassatotaal</div>
@@ -672,6 +674,24 @@ function laadAfsprakenVanMice(activities){
   showToast('✓ Afspraken geladen uit MICE');
 }
 
+function laadAfsprakenVanMice(activities){
+  if(!activities||!activities.length)return;
+  var producten=[];
+  activities.forEach(a=>{(a.products||[]).forEach(p=>producten.push((p.name||'').toLowerCase().trim()));});
+  producten.forEach(n=>{
+    if(n.includes('prosecco')||n.includes('bubbel')||n.includes('champagne'))af.prosecco=true;
+    if(n.includes('nootje')||n.includes('zoutje'))af.nootjes=true;
+    if(n.includes('olijf')||n.includes('kaas'))af.olijven=true;
+    if(n.includes('bitter'))af.bitter=Math.max(af.bitter,1);
+    if(n.includes('koude hapje')||n.includes('koude luxe'))af.koude=Math.max(af.koude,1);
+    if(n.includes('eindsnack')||n.includes('eind snack')||n.includes('avondsnack'))af.eindsnack=true;
+  });
+  ['prosecco','nootjes','olijven'].forEach(k=>{var t=document.getElementById('tog-'+k);if(t)t.classList.toggle('on',af[k]);});
+  var be=document.getElementById('bitter-count');if(be&&af.bitter>0)be.textContent=af.bitter;
+  var ke=document.getElementById('koude-count');if(ke&&af.koude>0)ke.textContent=af.koude;
+  updateSummary();
+  showToast('✓ Afspraken geladen uit MICE');
+}
 function laadDraaiboekVanMice(activities){if(!activities||!activities.length)return;draaiboekItems=activities.filter(a=>a.datetime_start).sort((a,b)=>a.datetime_start.localeCompare(b.datetime_start)).map(a=>({tijd:a.datetime_start.slice(11,16),naam:a.name||'',omschrijving:stripHtml(a.description).trim(),type:bepaalType(a.name),locatie:a.location?a.location.name:''}));renderDraaiboek();showToast('✓ Draaiboek geladen ('+draaiboekItems.length+' blokken)');}
 
 async function laadReservering() {
