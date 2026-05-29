@@ -269,8 +269,11 @@ html,body{height:100%;background:#132d4a;}
     <button class="drink-btn" onclick="tap('borrel')"><span class="d-icon">🧀</span><span class="d-name">Borrelplank</span><span class="d-price" id="pr-borrel"></span><span class="d-count" id="cnt-borrel">0</span></button>
     <button class="drink-btn" onclick="tap('olijven')"><span class="d-icon">🫙</span><span class="d-name">Kaas / Olijven</span><span class="d-price" id="pr-olijven"></span><span class="d-count" id="cnt-olijven">0</span></button>
     <button class="drink-btn" onclick="tap('nootjes')"><span class="d-icon">🥜</span><span class="d-name">Nootjes / Zoutjes</span><span class="d-price" id="pr-nootjes"></span><span class="d-count" id="cnt-nootjes">0</span></button>
-    <button class="undo-btn-grid" onclick="undoLast()"><span class="undo-icon">↩</span><span class="undo-label">Ongedaan</span></button>
   </div>
+  <button class="undo-btn-grid" onclick="undoLast()" style="width:100%;margin-top:8px;height:48px;border-radius:10px;aspect-ratio:unset;flex-direction:row;gap:8px;display:flex;align-items:center;justify-content:center;">
+    <span class="undo-icon" style="font-size:20px;">↩</span>
+    <span class="undo-label" style="font-size:13px;letter-spacing:1px;font-family:'Oswald',sans-serif;font-weight:600;text-transform:uppercase;">Ongedaan maken</span>
+  </button>
   <div class="undo-wrap"></div>
   <div class="kassa-banner" id="kassaBanner" style="display:none;">
       <div>
