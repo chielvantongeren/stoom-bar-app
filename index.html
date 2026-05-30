@@ -348,19 +348,16 @@ html,body{height:100%;background:#132d4a;}
     <div style="background:var(--bg3);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">Openstaande bon</div>
+        <div style="display:flex;align-items:center;gap:8px;">
         <div id="bon-titel" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-top:2px;"></div>
+        <button onclick="hernoembBon()" style="background:none;border:none;color:var(--dimmed);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;" title="Hernoem bon">✏️</button>
+      </div>
       </div>
       <div id="bon-totaal-badge" style="font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);font-weight:700;"></div>
     </div>
 
     <!-- Drankjes toevoegen -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
-      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Toevoegen aan bon</div>
-      <div id="bon-drink-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
-      <button onclick="voegToeAanBon()" style="width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:none;border-radius:8px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
-        + Toevoegen aan bon
-      </button>
-    </div>
+
 
     <!-- Lopende bon -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
@@ -1492,146 +1489,7 @@ function openBon(id) {
   document.getElementById('tafels-bon').style.display = 'block';
   document.getElementById('bon-titel').textContent = bon.naam;
 
-  // Bouw drink grid
-  const grid = document.getElementById('bon-drink-grid');
-  grid.innerHTML = Object.entries(drinks).map(([k,d]) => `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;">
-      <span style="font-size:18px;">${d.emoji}</span>
-      <span style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:var(--text);line-height:1.1;">${d.label}</span>
-      <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
-        <button onclick="bonTap('${k}',-1)" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);background:none;color:var(--dimmed);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
-        <span id="bc-${k}" style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:var(--text);min-width:16px;text-align:center;">0</span>
-        <button onclick="bonTap('${k}',1)" style="width:20px;height:20px;border-radius:50%;background:var(--bg3);border:none;color:var(--gold);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
-      </div>
-    </div>`).join('');
-
-  renderBonRegels(bon);
-}
-
-function bonTap(key, dir) {
-  bonCounts[key] = Math.max(0, (bonCounts[key] || 0) + dir);
-  const el = document.getElementById('bc-' + key);
-  if (el) el.textContent = bonCounts[key];
-}
-
-function voegToeAanBon() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon) return;
-  let toegevoegd = 0;
-  Object.entries(bonCounts).forEach(([k, qty]) => {
-    if (qty > 0) {
-      const d = drinks[k];
-      const bestaand = bon.regels.find(r => r.key === k);
-      if (bestaand) { bestaand.qty += qty; }
-      else { bon.regels.push({ key: k, label: d.label, qty, price: d.price }); }
-      toegevoegd += qty;
-    }
-  });
-  if (toegevoegd === 0) { showToast('Niets geselecteerd'); return; }
-  // Reset tellers
-  bonCounts = {};
-  document.querySelectorAll('[id^="bc-"]').forEach(el => el.textContent = '0');
-  renderBonRegels(bon);
-  showToast('✓ Toegevoegd aan bon');
-}
-
-function renderBonRegels(bon) {
-  const el = document.getElementById('bon-regels');
-  const badge = document.getElementById('bon-totaal-badge');
-  if (!el) return;
-  if (bon.regels.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--dimmed);font-size:13px;">Nog niets op deze bon</div>';
-    badge.textContent = '€ 0,00';
-    return;
-  }
-  const totaal = bonTotaal(bon);
-  el.innerHTML = bon.regels.map(r => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border2);font-size:13px;">
-      <span style="color:var(--text);">${r.qty}x ${r.label}</span>
-      <span style="color:var(--text);font-weight:500;">€ ${(r.qty * r.price).toFixed(2).replace('.',',')}</span>
-    </div>`).join('') +
-    `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-family:'Oswald',sans-serif;">
-      <span style="color:var(--text);font-size:13px;">Totaal</span>
-      <span style="font-size:18px;color:var(--gold);">€ ${totaal.toFixed(2).replace('.',',')}</span>
-    </div>`;
-  badge.textContent = '€ ' + totaal.toFixed(2).replace('.', ',');
-}
-
-function sluitBon() {
-  activeBonId = null;
-  document.getElementById('tafels-bon').style.display = 'none';
-  document.getElementById('tafels-overzicht').style.display = 'block';
-  renderTafelsOverzicht();
-}
-
-function sluitBonAf() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon) return;
-  bon.gesloten = true;
-  showToast('✓ Bon afgesloten');
-  sluitBon();
-}
-
-async function bonOpslaan() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
-  if (!miceReservationId) { showToast('Laad eerst een event via MICE'); return; }
-  const counts = {};
-  bon.regels.forEach(r => counts[r.key] = r.qty);
-  try {
-    const resp = await micePost('/consumption', { reservation_id: miceReservationId, counts, drinks });
-    if (resp.success) {
-      showToast('✓ ' + bon.naam + ' opgeslagen in MICE');
-      bon.gesloten = true;
-      sluitBon();
-    } else {
-      showToast('Fout: ' + (resp.error || 'onbekend'));
-    }
-  } catch(e) {
-    showToast('Fout bij opslaan: ' + e.message);
-  }
-}
-
-function bonQR() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon) return;
-  const totaal = bonTotaal(bon);
-  const klant = document.getElementById('klant')?.value || 'STOOM';
-  const omschrijving = encodeURIComponent(bon.naam + ' - ' + klant);
-  const bedrag = totaal.toFixed(2);
-  // Mollie betaalverzoek
-  const url = `https://stoom-bar-app.vercel.app/api/mollie?amount=${bedrag}&description=${omschrijving}`;
-  window.open(url, '_blank');
-}
-
-
-// ── TAFEL MODAL ─────────────────────────────────────────────
-function openTafelModal() {
-  if(Object.values(counts).every(v => v === 0)) {
-    showToast('Tap eerst drankjes'); return;
-  }
-  renderTafelDropdownLijst();
-  const modal = document.getElementById('tafelModal');
-  modal.style.display = 'flex';
-  document.getElementById('nieuwe-tafel-naam').value = '';
-}
-
-function sluitTafelModal() {
-  sluitTafelDropdown();
-}
-
-function renderTafelModalLijst() {
-  const lijst = document.getElementById('tafel-modal-lijst');
-  const open = tafels.filter(t => !t.gesloten);
-  if (open.length === 0) {
-    lijst.innerHTML = '<div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div><div style="font-size:13px;color:var(--dimmed);padding:10px 0;">Nog geen open bonnen</div>';
-    return;
-  }
-  lijst.innerHTML = '<div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div>' +
-    open.map(t => {
-      const totaal = bonTotaal(t);
-      return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><div><div style=\"font-family:Oswald,sans-serif;font-size:14px;color:var(--text);\">' + t.naam + '</div><div style="font-size:12px;color:var(--dimmed);margin-top:2px;">' + t.regels.length + ' item(s)</div></div><div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold);">€ ' + totaal.toFixed(2).replace('.',',') + '</div></div>';
-    }).join('');
+  // Drink grid verwijderd - bestelling via hoofdmenu
 }
 
 function schrijfNaarNieuweTafel() {
@@ -1726,6 +1584,18 @@ document.addEventListener('click', function(e) {
     dd.style.display = 'none';
   }
 });
+
+
+function hernoembBon() {
+  var bon = tafels.find(function(t){ return t.id === activeBonId; });
+  if (!bon) return;
+  var nieuwNaam = prompt('Hernoem bon:', bon.naam);
+  if (nieuwNaam && nieuwNaam.trim()) {
+    bon.naam = nieuwNaam.trim();
+    document.getElementById('bon-titel').textContent = bon.naam;
+    showToast('✓ Bon hernoemd naar ' + bon.naam);
+  }
+}
 
 </script>
 </body>
