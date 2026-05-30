@@ -288,7 +288,8 @@ html,body{height:100%;background:#132d4a;}
     </div>
     <div class="btn-row" style="position:relative;">
       <div style="display:flex;width:100%;border:1px solid var(--border2);border-radius:8px;overflow:visible;">
-        <button onclick="schrijfNaarNieuweTafelSnel()" style="flex:1;background:var(--bg3);border:none;color:var(--text);padding:11px 12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:left;border-radius:8px 0 0 8px;">🪑 Nieuwe bon</button>
+        <button onclick="switchTab('tafels')" style="background:var(--bg2);border:none;border-right:1px solid var(--border2);color:var(--gold);padding:11px 12px;cursor:pointer;font-size:16px;border-radius:8px 0 0 8px;" title="Bekijk tafels">🪑</button>
+        <button onclick="schrijfNaarNieuweTafelSnel()" style="flex:1;background:var(--bg3);border:none;color:var(--text);padding:11px 12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:left;">Nieuwe bon</button>
         <button onclick="toggleTafelDropdown(event)" id="tafelDropdownBtn" style="background:var(--bg3);border:none;border-left:1px solid var(--border2);color:var(--gold);padding:11px 16px;cursor:pointer;font-size:18px;border-radius:0 8px 8px 0;">▾</button>
       </div>
       <div id="tafelDropdown" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;z-index:200;overflow:hidden;box-shadow:0 -4px 20px #0008;">
