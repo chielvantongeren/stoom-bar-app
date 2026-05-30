@@ -563,6 +563,22 @@ html,body{height:100%;background:#132d4a;}
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Extra functies - bovenaan zodat Cloudflare ze niet blokkeert
+function sluitTafelDropdown() {
+  var dd = document.getElementById('tafelDropdown');
+  if (dd) dd.style.display = 'none';
+}
+function hernoembBon() {
+  var bon = tafels ? tafels.find(function(t){ return t.id === activeBonId; }) : null;
+  if (!bon) return;
+  var nieuwNaam = prompt('Hernoem bon:', bon.naam);
+  if (nieuwNaam && nieuwNaam.trim()) {
+    bon.naam = nieuwNaam.trim();
+    var el = document.getElementById('bon-titel');
+    if (el) el.textContent = bon.naam;
+    showToast('\u2713 Hernoemd naar ' + bon.naam);
+  }
+}
 // ============================================================
 // CONFIGURATIE — pas dit aan naar jouw Vercel URL na deployment
 // ============================================================
@@ -1707,23 +1723,6 @@ document.addEventListener('click', function(e) {
     dd.style.display = 'none';
   }
 });
-
-function sluitTafelDropdown() {
-  var dd = document.getElementById('tafelDropdown');
-  if (dd) dd.style.display = 'none';
-}
-
-function hernoembBon() {
-  var bon = tafels.find(function(t){ return t.id === activeBonId; });
-  if (!bon) return;
-  var nieuwNaam = prompt('Hernoem bon:', bon.naam);
-  if (nieuwNaam && nieuwNaam.trim()) {
-    bon.naam = nieuwNaam.trim();
-    var el = document.getElementById('bon-titel');
-    if (el) el.textContent = bon.naam;
-    showToast('\u2713 Hernoemd naar ' + bon.naam);
-  }
-}
 
 </script>
 </body>
