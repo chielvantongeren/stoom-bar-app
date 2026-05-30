@@ -1598,15 +1598,32 @@ async function bonOpslaan() {
 }
 
 function bonQR() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon) return;
-  const totaal = bonTotaal(bon);
-  const klant = document.getElementById('klant')?.value || 'STOOM';
-  const omschrijving = encodeURIComponent(bon.naam + ' - ' + klant);
-  const bedrag = totaal.toFixed(2);
-  // Mollie betaalverzoek
-  const url = `https://stoom-bar-app.vercel.app/api/mollie?amount=${bedrag}&description=${omschrijving}`;
-  window.open(url, '_blank');
+  var bon = tafels.find(function(t){ return t.id === activeBonId; });
+  if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
+  var totaal = bonTotaal(bon);
+  var klant = document.getElementById('klant')?.value || 'STOOM';
+  var omschrijving = bon.naam + ' - ' + klant;
+  var btn = document.querySelector('#tafels-bon button[onclick="bonQR()"]');
+  if (btn) btn.textContent = '⏳ Betaalverzoek...';
+
+  fetch('/api/mollie', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({amount: totaal.toFixed(2), description: omschrijving})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (btn) btn.textContent = '💳 QR Betaalverzoek';
+    if (data.checkoutUrl) {
+      window.open(data.checkoutUrl, '_blank');
+    } else {
+      showToast('Fout: ' + (data.error || 'onbekend'));
+    }
+  })
+  .catch(function(e){
+    if (btn) btn.textContent = '💳 QR Betaalverzoek';
+    showToast('Fout: ' + e.message);
+  });
 }
 
 
