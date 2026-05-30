@@ -9,6 +9,44 @@
 <title>STOOM Evenementen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js">
+function sluitBetaalOverlay() {
+  var el = document.getElementById('betaalOverlay');
+  if (el) el.remove();
+}
+function toonBetaalLink(url, bedrag) {
+  sluitBetaalOverlay();
+  var bedragStr = parseFloat(bedrag).toFixed(2).replace('.',',');
+  var overlay = document.createElement('div');
+  overlay.id = 'betaalOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000b;z-index:9999;display:flex;align-items:center;justify-content:center;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--bg2);border-radius:16px;padding:24px 20px;width:90%;max-width:380px;text-align:center;';
+  var titel = document.createElement('div');
+  titel.style.cssText = 'font-family:Oswald,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;';
+  titel.textContent = 'Betaalverzoek klaar';
+  var bedragEl = document.createElement('div');
+  bedragEl.style.cssText = 'font-family:Oswald,sans-serif;font-size:32px;color:var(--text);margin-bottom:16px;';
+  bedragEl.textContent = '€ ' + bedragStr;
+  var canvas = document.createElement('canvas');
+  canvas.id = 'qrCanvas';
+  canvas.style.cssText = 'margin:0 auto 16px;display:block;border-radius:8px;background:#fff;padding:8px;';
+  var betaalBtn = document.createElement('a');
+  betaalBtn.href = url;
+  betaalBtn.style.cssText = 'display:block;padding:14px;background:var(--gold);border-radius:10px;color:var(--bg3);font-family:Oswald,sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;margin-bottom:10px;';
+  betaalBtn.textContent = 'Betalen';
+  var sluitBtn = document.createElement('button');
+  sluitBtn.textContent = 'Sluiten';
+  sluitBtn.style.cssText = 'width:100%;padding:11px;background:none;border:1px solid var(--border2);border-radius:10px;color:var(--dimmed);font-family:Oswald,sans-serif;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:1px;';
+  sluitBtn.onclick = sluitBetaalOverlay;
+  box.appendChild(titel);
+  box.appendChild(bedragEl);
+  box.appendChild(canvas);
+  box.appendChild(betaalBtn);
+  box.appendChild(sluitBtn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  try { new QRious({ element: canvas, value: url, size: 200, background: '#ffffff', foreground: '#132d4a' }); } catch(e) {}
+}
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -562,33 +600,6 @@ html,body{height:100%;background:#132d4a;}
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-
-function sluitBetaalOverlay() {
-  var el = document.getElementById('betaalOverlay');
-  if (el) el.remove();
-}
-function toonBetaalLink(url, bedrag) {
-  sluitBetaalOverlay();
-  var overlay = document.createElement('div');
-  overlay.id = 'betaalOverlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:#000b;z-index:9999;display:flex;align-items:center;justify-content:center;';
-  var bedragStr = parseFloat(bedrag).toFixed(2).replace('.',',');
-  var inner = document.createElement('div');
-  inner.style.cssText = 'background:var(--bg2);border-radius:16px;padding:24px 20px;width:90%;max-width:380px;text-align:center;';
-  inner.innerHTML =
-    '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Betaalverzoek klaar</div>' +
-    '<div style="font-family:Oswald,sans-serif;font-size:32px;color:var(--text);margin-bottom:16px;">&euro; ' + bedragStr + '</div>' +
-    '<canvas id="qrCanvas" style="margin:0 auto 16px;display:block;border-radius:8px;background:#fff;padding:8px;"></canvas>' +
-    '<a href="' + url + '" style="display:block;padding:14px;background:var(--gold);border-radius:10px;color:var(--bg3);font-family:Oswald,sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;margin-bottom:10px;">Betalen</a>';
-  var sluitBtn = document.createElement('button');
-  sluitBtn.textContent = 'Sluiten';
-  sluitBtn.style.cssText = 'width:100%;padding:11px;background:none;border:1px solid var(--border2);border-radius:10px;color:var(--dimmed);font-family:Oswald,sans-serif;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:1px;';
-  sluitBtn.onclick = sluitBetaalOverlay;
-  inner.appendChild(sluitBtn);
-  overlay.appendChild(inner);
-  document.body.appendChild(overlay);
-  try { new QRious({ element: document.getElementById('qrCanvas'), value: url, size: 200, background: '#ffffff', foreground: '#132d4a' }); } catch(e) {}
-}
 // Extra functies - bovenaan zodat Cloudflare ze niet blokkeert
 function saveTafels() {
   try { localStorage.setItem('stoom_tafels', JSON.stringify(tafels)); } catch(e) {}
