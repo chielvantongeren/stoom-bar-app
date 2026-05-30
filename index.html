@@ -355,7 +355,12 @@ html,body{height:100%;background:#132d4a;}
 
     <!-- Drankjes toevoegen -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
-      
+      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Toevoegen aan bon</div>
+      <div id="bon-drink-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+      <button onclick="voegToeAanBon()" style="width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:none;border-radius:8px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
+        + Toevoegen aan bon
+      </button>
+    </div>
 
     <!-- Lopende bon -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
@@ -1487,9 +1492,7 @@ function openBon(id) {
   document.getElementById('tafels-bon').style.display = 'block';
   document.getElementById('bon-titel').textContent = bon.naam;
 
-  // Bouw drink grid
-  // Drink grid verwijderd
-
+  // Drink grid verwijderd - bestelling via hoofdmenu
 
   renderBonRegels(bon);
 }
