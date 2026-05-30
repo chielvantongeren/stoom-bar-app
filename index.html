@@ -354,7 +354,8 @@ html,body{height:100%;background:#132d4a;}
     </div>
 
     <!-- Drankjes toevoegen -->
-    
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
+      
 
     <!-- Lopende bon -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
@@ -1487,17 +1488,8 @@ function openBon(id) {
   document.getElementById('bon-titel').textContent = bon.naam;
 
   // Bouw drink grid
-  const grid = document.getElementById('bon-drink-grid');
-  grid.innerHTML = Object.entries(drinks).map(([k,d]) => `
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;">
-      <span style="font-size:18px;">${d.emoji}</span>
-      <span style="font-family:'Oswald',sans-serif;font-size:9px;letter-spacing:.3px;text-transform:uppercase;color:var(--text);line-height:1.1;">${d.label}</span>
-      <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
-        <button onclick="bonTap('${k}',-1)" style="width:20px;height:20px;border-radius:50%;border:1px solid var(--border2);background:none;color:var(--dimmed);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">−</button>
-        <span id="bc-${k}" style="font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;color:var(--text);min-width:16px;text-align:center;">0</span>
-        <button onclick="bonTap('${k}',1)" style="width:20px;height:20px;border-radius:50%;background:var(--bg3);border:none;color:var(--gold);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">+</button>
-      </div>
-    </div>`).join('');
+  // Drink grid verwijderd
+
 
   renderBonRegels(bon);
 }
