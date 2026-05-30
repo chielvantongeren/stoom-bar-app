@@ -286,9 +286,11 @@ html,body{height:100%;background:#132d4a;}
     <div class="btn-row">
       <button class="abtn mice" id="micesSendBtn" onclick="stuurNaarMice()" disabled>🔗 Opslaan in MICE</button>
     </div>
-    <div class="btn-row" style="position:relative;display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-      <button onclick="schrijfNaarNieuweTafelSnel()" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:11px 8px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:center;">🪑 Nieuwe bon</button>
-      <button onclick="toggleTafelDropdown(event)" id="tafelDropdownBtn" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--gold);padding:11px 8px;font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:center;">🪑 Bestaande bon ▾</button>
+    <div class="btn-row" style="position:relative;">
+      <div style="display:flex;width:100%;border:1px solid var(--border2);border-radius:8px;overflow:visible;">
+        <button onclick="schrijfNaarNieuweTafelSnel()" style="flex:1;background:var(--bg3);border:none;color:var(--text);padding:11px 12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:left;border-radius:8px 0 0 8px;">🪑 Nieuwe bon</button>
+        <button onclick="toggleTafelDropdown(event)" id="tafelDropdownBtn" style="background:var(--bg3);border:none;border-left:1px solid var(--border2);color:var(--gold);padding:11px 16px;cursor:pointer;font-size:18px;border-radius:0 8px 8px 0;">▾</button>
+      </div>
       <div id="tafelDropdown" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;z-index:200;overflow:hidden;box-shadow:0 -4px 20px #0008;">
         <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;padding:8px 12px 4px;">Open bonnen</div>
         <div id="tafelDropdownLijst"></div>
@@ -1597,15 +1599,27 @@ async function bonOpslaan() {
 }
 
 function bonQR() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon) return;
-  const totaal = bonTotaal(bon);
-  const klant = document.getElementById('klant')?.value || 'STOOM';
-  const omschrijving = encodeURIComponent(bon.naam + ' - ' + klant);
-  const bedrag = totaal.toFixed(2);
-  // Mollie betaalverzoek
-  const url = `https://stoom-bar-app.vercel.app/api/mollie?amount=${bedrag}&description=${omschrijving}`;
-  window.open(url, '_blank');
+  var bon = tafels.find(function(t){ return t.id === activeBonId; });
+  if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
+  var totaal = bonTotaal(bon);
+  if (totaal <= 0) { showToast('Totaal is 0'); return; }
+  var klant = document.getElementById('klant') ? document.getElementById('klant').value : 'STOOM';
+  var omschrijving = bon.naam + (klant ? ' - ' + klant : '');
+  showToast('⏳ Betaalverzoek aanmaken...');
+  fetch('/api/mollie', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({amount: totaal.toFixed(2), description: omschrijving})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.checkoutUrl) {
+      window.open(data.checkoutUrl, '_blank');
+    } else {
+      showToast('Fout: ' + (data.error || 'onbekend'));
+    }
+  })
+  .catch(function(e){ showToast('Fout: ' + e.message); });
 }
 
 
