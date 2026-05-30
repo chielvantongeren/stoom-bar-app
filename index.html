@@ -286,6 +286,21 @@ html,body{height:100%;background:#132d4a;}
     <div class="btn-row">
       <button class="abtn mice" id="micesSendBtn" onclick="stuurNaarMice()" disabled>🔗 Opslaan in MICE</button>
     </div>
+    <div class="btn-row" style="position:relative;">
+      <div style="display:flex;width:100%;border:1px solid var(--border2);border-radius:8px;overflow:visible;">
+        <button onclick="schrijfNaarNieuweTafelSnel()" style="flex:1;background:var(--bg3);border:none;color:var(--text);padding:11px 12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;text-align:left;border-radius:8px 0 0 8px;">🪑 Nieuwe bon</button>
+        <button onclick="toggleTafelDropdown(event)" id="tafelDropdownBtn" style="background:var(--bg3);border:none;border-left:1px solid var(--border2);color:var(--gold);padding:11px 16px;cursor:pointer;font-size:18px;border-radius:0 8px 8px 0;">▾</button>
+      </div>
+      <div id="tafelDropdown" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;z-index:200;overflow:hidden;box-shadow:0 -4px 20px #0008;">
+        <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;padding:8px 12px 4px;">Open bonnen</div>
+        <div id="tafelDropdownLijst"></div>
+        <div style="border-top:1px solid var(--border2);padding:8px 10px;display:flex;gap:6px;">
+          <input id="nieuwe-tafel-naam" type="text" placeholder="Naam nieuwe bon..." autocomplete="off"
+            style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;"/>
+          <button onclick="schrijfNaarNieuweTafel()" style="padding:7px 14px;background:var(--gold);border:none;border-radius:6px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">+</button>
+        </div>
+      </div>
+    </div>
     <div class="btn-row">
       <button class="abtn mollie" id="mollieBtn" onclick="maakBetaalverzoek()">💳 Betaalverzoek + QR</button>
     </div>
@@ -1590,47 +1605,38 @@ function bonQR() {
 }
 
 
-
-// ── TAFEL DROPDOWN ──────────────────────────────────────────
-function toggleTafelDropdown() {
+// ── TAFEL MODAL ─────────────────────────────────────────────
+function openTafelModal() {
   if(Object.values(counts).every(v => v === 0)) {
     showToast('Tap eerst drankjes'); return;
   }
-  const dd = document.getElementById('tafelDropdown');
-  const isOpen = dd.style.display !== 'none';
-  if (isOpen) {
-    dd.style.display = 'none';
-  } else {
-    renderTafelDropdownLijst();
-    dd.style.display = 'block';
-    document.getElementById('nieuwe-tafel-naam').value = '';
-  }
+  renderTafelModalLijst();
+  const modal = document.getElementById('tafelModal');
+  modal.style.display = 'flex';
+  document.getElementById('nieuwe-tafel-naam').value = '';
 }
 
-function sluitTafelDropdown() {
-  const dd = document.getElementById('tafelDropdown');
-  if (dd) dd.style.display = 'none';
+function sluitTafelModal() {
+  document.getElementById('tafelModal').style.display = 'none';
 }
 
-function renderTafelDropdownLijst() {
-  const lijst = document.getElementById('tafelDropdownLijst');
-  if (!lijst) return;
+function renderTafelModalLijst() {
+  const lijst = document.getElementById('tafel-modal-lijst');
   const open = tafels.filter(t => !t.gesloten);
   if (open.length === 0) {
-    lijst.innerHTML = '<div style="padding:6px 12px;font-size:12px;color:var(--dimmed);">Nog geen open bonnen</div>';
+    lijst.innerHTML = '<div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div><div style="font-size:13px;color:var(--dimmed);padding:10px 0;">Nog geen open bonnen</div>';
     return;
   }
-  lijst.innerHTML = open.map(t => {
-    const totaal = bonTotaal(t);
-    return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border2);"><span style="font-family:Oswald,sans-serif;font-size:13px;color:var(--text);">' + t.naam + '</span><span style="font-family:Oswald,sans-serif;font-size:13px;color:var(--gold);">€ ' + totaal.toFixed(2).replace('.',',') + '</span></div>';
-  }).join('');
+  lijst.innerHTML = '<div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div>' +
+    open.map(t => {
+      const totaal = bonTotaal(t);
+      return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><div><div style=\"font-family:Oswald,sans-serif;font-size:14px;color:var(--text);\">' + t.naam + '</div><div style="font-size:12px;color:var(--dimmed);margin-top:2px;">' + t.regels.length + ' item(s)</div></div><div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold);">€ ' + totaal.toFixed(2).replace('.',',') + '</div></div>';
+    }).join('');
 }
 
-function schrijfNaarNieuweTafelSnel() {
-  if(Object.values(counts).every(v => v === 0)) {
-    showToast('Tap eerst drankjes'); return;
-  }
-  const naam = 'Bon ' + (tafels.length + 1);
+function schrijfNaarNieuweTafel() {
+  const naam = document.getElementById('nieuwe-tafel-naam').value.trim();
+  if (!naam) { showToast('Vul een naam in'); return; }
   const nu = new Date();
   const tijd = nu.getHours() + ':' + String(nu.getMinutes()).padStart(2,'0');
   const bon = { id: Date.now(), naam, regels: [], gesloten: false, tijd };
@@ -1638,12 +1644,32 @@ function schrijfNaarNieuweTafelSnel() {
   schrijfCountsNaarBon(bon.id);
 }
 
-// Sluit dropdown bij klik buiten
-document.addEventListener('click', function(e) {
-  const dd = document.getElementById('tafelDropdown');
-  const btn = document.getElementById('tafelDropdownBtn');
-  if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
-    dd.style.display = 'none';
-  }
-});
+function schrijfNaarBestaandeTafel(id) {
+  schrijfCountsNaarBon(id);
+}
 
+function schrijfCountsNaarBon(id) {
+  const bon = tafels.find(t => t.id === id);
+  if (!bon) return;
+  let toegevoegd = 0;
+  Object.entries(counts).forEach(function(entry) {
+    const k = entry[0]; const qty = entry[1];
+    if (qty > 0 && drinks[k]) {
+      const d = drinks[k];
+      const bestaand = bon.regels.find(r => r.key === k);
+      if (bestaand) { bestaand.qty += qty; }
+      else { bon.regels.push({ key: k, label: d.label, qty, price: d.price, miceId: d.miceId }); }
+      toegevoegd += qty;
+    }
+  });
+  if (toegevoegd === 0) { showToast('Niets om weg te schrijven'); return; }
+  Object.keys(counts).forEach(k => { counts[k] = 0; });
+  document.querySelectorAll('.d-count').forEach(el => el.textContent = '0');
+  if (typeof updateKassa === 'function') updateKassa();
+  sluitTafelModal();
+  showToast('✓ Weggeschreven naar ' + bon.naam);
+}
+
+</script>
+</body>
+</html>
