@@ -285,6 +285,7 @@ html,body{height:100%;background:#132d4a;}
     <div class="totals-card"><div class="totals-inner" id="totalsRows"></div></div>
     <div class="btn-row">
       <button class="abtn mice" id="micesSendBtn" onclick="stuurNaarMice()" disabled>🔗 Opslaan in MICE</button>
+      <button class="abtn" id="tafelBtn" onclick="openTafelModal()" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text);">🪑 Wegschrijven naar tafel</button>
     </div>
     <div class="btn-row">
       <button class="abtn mollie" id="mollieBtn" onclick="maakBetaalverzoek()">💳 Betaalverzoek + QR</button>
@@ -303,27 +304,10 @@ html,body{height:100%;background:#132d4a;}
   <div class="tab-content" id="tab-tafels">
   <!-- OVERZICHT -->
   <div id="tafels-overzicht">
-    <div id="tafels-lijst"></div>
-    <button onclick="openNieuweBon()" style="width:100%;margin-top:8px;padding:12px;background:var(--bg2);border:1.5px dashed var(--border2);border-radius:10px;color:var(--dimmed);font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-      <span style="font-size:20px;">+</span> Nieuwe bon aanmaken
-    </button>
-    <div id="tafels-totaal" style="display:none;background:var(--bg3);border-radius:10px;padding:10px 14px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+    <div id="tafels-lijst"><div style="text-align:center;padding:30px;color:var(--dimmed);font-size:14px;">Nog geen bonnen aangemaakt.<br>Tap drankjes en schrijf ze weg naar een tafel.</div></div>
+    <div id="tafels-totaal-bar" style="display:none;background:var(--bg3);border-radius:10px;padding:10px 14px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
       <span style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);">Totaal open</span>
       <span id="tafels-totaal-bedrag" style="font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);font-weight:700;">€ 0,00</span>
-    </div>
-  </div>
-
-  <!-- NIEUWE BON FORMULIER -->
-  <div id="tafels-nieuw" style="display:none;">
-    <div onclick="sluitNieuweBon()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dimmed);cursor:pointer;margin-bottom:10px;">← Terug</div>
-    <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:var(--text);margin-bottom:12px;">Nieuwe bon</div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;">
-      <div style="font-size:12px;color:var(--dimmed);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;">Naam tafel of gast</div>
-      <input id="nieuwe-bon-naam" type="text" placeholder="bijv. Tafel 5, Jan de Vries, VIP..." autocomplete="off"
-        style="width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;margin-bottom:14px;"/>
-      <button onclick="maakNieuweBon()" style="width:100%;padding:12px;background:var(--bg3);border:none;border-radius:10px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
-        Bon aanmaken
-      </button>
     </div>
   </div>
 
@@ -335,38 +319,18 @@ html,body{height:100%;background:#132d4a;}
         <div style="font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">Openstaande bon</div>
         <div id="bon-titel" style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--text);margin-top:2px;"></div>
       </div>
-      <div id="bon-totaal-badge" style="font-family:'Oswald',sans-serif;font-size:20px;color:var(--gold);font-weight:700;"></div>
+      <div id="bon-totaal-badge" style="font-family:'Oswald',sans-serif;font-size:22px;color:var(--gold);font-weight:700;"></div>
     </div>
-
-    <!-- Drankjes toevoegen -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
-      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Toevoegen aan bon</div>
-      <div id="bon-drink-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
-      <button onclick="voegToeAanBon()" style="width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:none;border-radius:8px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
-        + Toevoegen aan bon
-      </button>
-    </div>
-
-    <!-- Lopende bon -->
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
-      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Lopende bon</div>
+      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Bon overzicht</div>
       <div id="bon-regels"></div>
     </div>
-
-    <!-- Acties -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <button onclick="bonQR()" style="padding:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
-        💳 QR Betaalverzoek
-      </button>
-      <button onclick="bonOpslaan()" style="padding:11px;background:var(--gold);border:none;border-radius:10px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
-        💾 Opslaan MICE
-      </button>
+      <button onclick="bonQR()" style="padding:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">💳 QR Betaalverzoek</button>
+      <button onclick="bonOpslaan()" style="padding:11px;background:var(--gold);border:none;border-radius:10px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">💾 Opslaan in MICE</button>
     </div>
-    <button onclick="sluitBonAf()" style="width:100%;margin-top:8px;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
-      ✓ Bon afsluiten
-    </button>
-  </div>
-</div></div>
+    <button onclick="sluitBonAf()" style="width:100%;margin-top:8px;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">✓ Bon afsluiten</button>
+  </div></div>
 <div class="tab-content" id="tab-afspraken">
     <div class="af-summary-section">
       <div class="sec-title" style="margin-top:0;">Overzicht afspraken</div>
@@ -1590,5 +1554,32 @@ function bonQR() {
 }
 
 </script>
+
+<!-- TAFEL MODAL -->
+<div id="tafelModal" style="display:none;position:fixed;inset:0;background:#000a;z-index:999;align-items:flex-end;justify-content:center;">
+  <div style="background:var(--bg2);border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:600px;max-height:80vh;overflow-y:auto;">
+    <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:var(--text);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+      <span>🪑 Wegschrijven naar tafel</span>
+      <span onclick="sluitTafelModal()" style="cursor:pointer;color:var(--dimmed);font-size:20px;">✕</span>
+    </div>
+
+    <!-- Nieuwe bon aanmaken -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Nieuwe bon</div>
+      <div style="display:flex;gap:8px;">
+        <input id="nieuwe-tafel-naam" type="text" placeholder="Naam tafel of gast..." autocomplete="off"
+          style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;"/>
+        <button onclick="schrijfNaarNieuweTafel()" style="padding:10px 16px;background:var(--gold);border:none;border-radius:8px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;">
+          Aanmaken
+        </button>
+      </div>
+    </div>
+
+    <!-- Bestaande bonnen -->
+    <div id="tafel-modal-lijst">
+      <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
