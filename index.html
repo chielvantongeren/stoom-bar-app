@@ -1597,10 +1597,6 @@ function bonQR() {
 // ── TAFEL MODAL ─────────────────────────────────────────────
 function openTafelModal() { toggleTafelDropdown({stopPropagation:function(){}}); }
 
-function sluitTafelDropdown() {
-  var dd = document.getElementById('tafelDropdown');
-  if (dd) dd.style.display = 'none';
-}
 function sluitTafelModal() {
   sluitTafelDropdown();
 }
@@ -1711,6 +1707,23 @@ document.addEventListener('click', function(e) {
     dd.style.display = 'none';
   }
 });
+
+function sluitTafelDropdown() {
+  var dd = document.getElementById('tafelDropdown');
+  if (dd) dd.style.display = 'none';
+}
+
+function hernoembBon() {
+  var bon = tafels.find(function(t){ return t.id === activeBonId; });
+  if (!bon) return;
+  var nieuwNaam = prompt('Hernoem bon:', bon.naam);
+  if (nieuwNaam && nieuwNaam.trim()) {
+    bon.naam = nieuwNaam.trim();
+    var el = document.getElementById('bon-titel');
+    if (el) el.textContent = bon.naam;
+    showToast('\u2713 Hernoemd naar ' + bon.naam);
+  }
+}
 
 </script>
 </body>
