@@ -657,7 +657,7 @@ function setMiceStatus(status, text) {
   if(detail) detail.textContent = text;
 }
 
-async function loadTafels(); loadFields(); initialiseerMice() {
+async function initialiseerMice() {
   setMiceStatus('loading', 'MICE verbinden...');
   try {
     const nu = new Date();
@@ -1620,8 +1620,8 @@ function bonQR() {
   if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
   var totaal = bonTotaal(bon);
   if (totaal <= 0) { showToast('Totaal is 0'); return; }
-  var klant = document.getElementById('klant') ? document.getElementById('klant').value : 'STOOM';
-  var omschrijving = bon.naam + (klant ? ' - ' + klant : '');
+  var klantEl = document.getElementById('klant');
+  var omschrijving = bon.naam + (klantEl && klantEl.value ? ' - ' + klantEl.value : '');
   showToast('⏳ Betaalverzoek aanmaken...');
   fetch('/api/mollie', {
     method: 'POST',
