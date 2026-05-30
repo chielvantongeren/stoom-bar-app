@@ -9,6 +9,66 @@
 <title>STOOM Evenementen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script data-cfasync="false">
+// Kritieke functies - apart script blok zodat Cloudflare ze niet blokkeert
+function saveTafels() {
+  try { localStorage.setItem('stoom_tafels', JSON.stringify(tafels)); } catch(e) {}
+}
+function loadTafels() {
+  try { var d = localStorage.getItem('stoom_tafels'); if(d) tafels = JSON.parse(d); } catch(e) {}
+}
+function saveField(id) {
+  try { var el = document.getElementById(id); if(el) localStorage.setItem('sf_'+id, el.value); } catch(e) {}
+}
+function loadFields() {
+  try {
+    ['klant','pers','datum','starttijd','eindtijd'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var v = localStorage.getItem('sf_' + id);
+      if (v) el.value = v;
+      el.addEventListener('input', function(){ localStorage.setItem('sf_'+id, el.value); });
+      el.addEventListener('change', function(){ localStorage.setItem('sf_'+id, el.value); });
+    });
+  } catch(e) {}
+}
+function sluitTafelDropdown() {
+  var dd = document.getElementById('tafelDropdown');
+  if (dd) dd.style.display = 'none';
+}
+function hernoembBon() {
+  var bon = tafels ? tafels.find(function(t){ return t.id === activeBonId; }) : null;
+  if (!bon) return;
+  var n = prompt('Hernoem bon:', bon.naam);
+  if (n && n.trim()) {
+    bon.naam = n.trim();
+    var el = document.getElementById('bon-titel');
+    if (el) el.textContent = bon.naam;
+    saveTafels();
+    showToast('✓ Hernoemd naar ' + bon.naam);
+  }
+}
+function bonQR() {
+  var bon = tafels ? tafels.find(function(t){ return t.id === activeBonId; }) : null;
+  if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
+  var totaal = bon.regels.reduce(function(s,r){ return s + r.qty * r.price; }, 0);
+  if (totaal <= 0) { showToast('Totaal is 0'); return; }
+  var klantEl = document.getElementById('klant');
+  var omschrijving = bon.naam + (klantEl && klantEl.value ? ' - ' + klantEl.value : '');
+  showToast('⏳ Betaalverzoek aanmaken...');
+  fetch('/api/mollie', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({amount: totaal.toFixed(2), description: omschrijving})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (data.checkoutUrl) { window.open(data.checkoutUrl, '_blank'); }
+    else { showToast('Fout: ' + (data.error || 'onbekend')); }
+  })
+  .catch(function(e){ showToast('Fout: ' + e.message); });
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -561,31 +621,14 @@ html,body{height:100%;background:#132d4a;}
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// Extra functies - bovenaan zodat Cloudflare ze niet blokkeert
-function saveTafels() {
-  try { localStorage.setItem('stoom_tafels', JSON.stringify(tafels)); } catch(e) {}
-}
-function loadTafels() {
-  try { tafels = JSON.parse(localStorage.getItem('stoom_tafels') || '[]'); } catch(e) { tafels = []; }
+// Extra functies - bovenaan zodat Cloudflare ze niet blokkeert catch(e) {}
+} catch(e) { tafels = []; }
 }
 function saveField(id, val) {
   try { localStorage.setItem('sf_' + id, val); } catch(e) {}
-}
-function loadFields() {
-  try {
-    ['klant','pers','datum','starttijd','eindtijd'].forEach(function(id) {
-      var el = document.getElementById(id);
-      var saved = localStorage.getItem('sf_' + id);
-      if (el && saved) el.value = saved;
-    });
+});
   } catch(e) {}
-}
-function sluitTafelDropdown() {
-  var dd = document.getElementById('tafelDropdown');
-  if (dd) dd.style.display = 'none';
-}
-function hernoembBon() {
-  var bon = tafels ? tafels.find(function(t){ return t.id === activeBonId; }) : null;
+}) : null;
   if (!bon) return;
   var nieuwNaam = prompt('Hernoem bon:', bon.naam);
   if (nieuwNaam && nieuwNaam.trim()) {
@@ -657,7 +700,7 @@ function setMiceStatus(status, text) {
   if(detail) detail.textContent = text;
 }
 
-async function initialiseerMice() {
+async function loadTafels(); loadFields(); initialiseerMice() {
   setMiceStatus('loading', 'MICE verbinden...');
   try {
     const nu = new Date();
@@ -1755,19 +1798,6 @@ document.addEventListener('click', function(e) {
   }
 });
 
-
-
-// Persist sessie velden
-try {
-  ['klant','pers','datum','starttijd','eindtijd'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    var v = localStorage.getItem('sf_' + id);
-    if (v) el.value = v;
-    el.addEventListener('input', function(){ localStorage.setItem('sf_' + id, el.value); });
-    el.addEventListener('change', function(){ localStorage.setItem('sf_' + id, el.value); });
-  });
-} catch(e) {}
 
 </script>
 </body>
