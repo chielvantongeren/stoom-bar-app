@@ -564,11 +564,6 @@ html,body{height:100%;background:#132d4a;}
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Extra functies - bovenaan zodat Cloudflare ze niet blokkeert
-
-function saveTafels() {
-  try { localStorage.setItem('stoom_tafels', JSON.stringify(tafels)); } catch(e) {}
-}
-
 function sluitTafelDropdown() {
   var dd = document.getElementById('tafelDropdown');
   if (dd) dd.style.display = 'none';
@@ -581,7 +576,6 @@ function hernoembBon() {
     bon.naam = nieuwNaam.trim();
     var el = document.getElementById('bon-titel');
     if (el) el.textContent = bon.naam;
-    saveTafels();
     showToast('\u2713 Hernoemd naar ' + bon.naam);
   }
 }
@@ -1419,7 +1413,7 @@ function saveBlok(){var tijd=document.getElementById("blokTijd").value,naam=docu
 function deleteBlok(){if(editBlokIdx!==null){draaiboekItems.splice(editBlokIdx,1);closeBlokForm();renderDraaiboek();}}
 
 // ── TAFELS & BONNEN ──────────────────────────────────────────
-let tafels = (function(){ try { return JSON.parse(localStorage.getItem('stoom_tafels')||'[]'); } catch(e){ return []; } })(); // [{id, naam, regels, gesloten, tijd}]
+let tafels = []; // [{id, naam, regels:[{key,label,qty,price}], gesloten, timestamp}]
 let activeBonId = null;
 let bonCounts = {};
 
@@ -1499,7 +1493,6 @@ function maakNieuweBon() {
   const tijd = nu.getHours() + ':' + String(nu.getMinutes()).padStart(2,'0');
   const bon = { id: Date.now(), naam, regels: [], gesloten: false, tijd };
   tafels.push(bon);
-  saveTafels();
   sluitNieuweBon();
   openBon(bon.id);
 }
@@ -1580,6 +1573,7 @@ function sluitBonAf() {
   const bon = tafels.find(t => t.id === activeBonId);
   if (!bon) return;
   bon.gesloten = true;
+  saveTafels();
   showToast('✓ Bon afgesloten');
   sluitBon();
 }
@@ -1672,6 +1666,7 @@ function schrijfCountsNaarBon(id) {
   if (typeof updateSummary === 'function') updateSummary();
   if (typeof updateKassaBanner === 'function') updateKassaBanner();
   sluitTafelModal();
+  saveTafels();
   showToast('✓ Weggeschreven naar ' + bon.naam);
 }
 
@@ -1734,15 +1729,17 @@ document.addEventListener('click', function(e) {
 
 // Herstel sessie velden na refresh
 (function(){
-  var fields = ['klant','pers','datum','starttijd','eindtijd'];
-  fields.forEach(function(id){
-    var el = document.getElementById(id);
-    if (!el) return;
-    var saved = localStorage.getItem('stoom_' + id);
-    if (saved) el.value = saved;
-    el.addEventListener('input', function(){ localStorage.setItem('stoom_' + id, el.value); });
-    el.addEventListener('change', function(){ localStorage.setItem('stoom_' + id, el.value); });
-  });
+  try {
+    var fields = ['klant','pers','datum','starttijd','eindtijd'];
+    fields.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      var saved = localStorage.getItem('sf_' + id);
+      if (saved) el.value = saved;
+      el.addEventListener('input', function(){ localStorage.setItem('sf_' + id, el.value); });
+      el.addEventListener('change', function(){ localStorage.setItem('sf_' + id, el.value); });
+    });
+  } catch(e) {}
 })();
 
 </script>
