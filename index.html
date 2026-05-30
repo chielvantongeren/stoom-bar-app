@@ -1590,38 +1590,47 @@ function bonQR() {
 }
 
 
-// ── TAFEL MODAL ─────────────────────────────────────────────
-function openTafelModal() {
+
+// ── TAFEL DROPDOWN ──────────────────────────────────────────
+function toggleTafelDropdown() {
   if(Object.values(counts).every(v => v === 0)) {
     showToast('Tap eerst drankjes'); return;
   }
-  renderTafelModalLijst();
-  const modal = document.getElementById('tafelModal');
-  modal.style.display = 'flex';
-  document.getElementById('nieuwe-tafel-naam').value = '';
+  const dd = document.getElementById('tafelDropdown');
+  const isOpen = dd.style.display !== 'none';
+  if (isOpen) {
+    dd.style.display = 'none';
+  } else {
+    renderTafelDropdownLijst();
+    dd.style.display = 'block';
+    document.getElementById('nieuwe-tafel-naam').value = '';
+  }
 }
 
-function sluitTafelModal() {
-  document.getElementById('tafelModal').style.display = 'none';
+function sluitTafelDropdown() {
+  const dd = document.getElementById('tafelDropdown');
+  if (dd) dd.style.display = 'none';
 }
 
-function renderTafelModalLijst() {
-  const lijst = document.getElementById('tafel-modal-lijst');
+function renderTafelDropdownLijst() {
+  const lijst = document.getElementById('tafelDropdownLijst');
+  if (!lijst) return;
   const open = tafels.filter(t => !t.gesloten);
   if (open.length === 0) {
-    lijst.innerHTML = '<div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div><div style="font-size:13px;color:var(--dimmed);padding:10px 0;">Nog geen open bonnen</div>';
+    lijst.innerHTML = '<div style="padding:6px 12px;font-size:12px;color:var(--dimmed);">Nog geen open bonnen</div>';
     return;
   }
-  lijst.innerHTML = '<div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Bestaande bonnen</div>' +
-    open.map(t => {
-      const totaal = bonTotaal(t);
-      return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ')" style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;"><div><div style=\"font-family:Oswald,sans-serif;font-size:14px;color:var(--text);\">' + t.naam + '</div><div style="font-size:12px;color:var(--dimmed);margin-top:2px;">' + t.regels.length + ' item(s)</div></div><div style="font-family:Oswald,sans-serif;font-size:16px;color:var(--gold);">€ ' + totaal.toFixed(2).replace('.',',') + '</div></div>';
-    }).join('');
+  lijst.innerHTML = open.map(t => {
+    const totaal = bonTotaal(t);
+    return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ')" style="padding:9px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border2);"><span style="font-family:Oswald,sans-serif;font-size:13px;color:var(--text);">' + t.naam + '</span><span style="font-family:Oswald,sans-serif;font-size:13px;color:var(--gold);">€ ' + totaal.toFixed(2).replace('.',',') + '</span></div>';
+  }).join('');
 }
 
-function schrijfNaarNieuweTafel() {
-  const naam = document.getElementById('nieuwe-tafel-naam').value.trim();
-  if (!naam) { showToast('Vul een naam in'); return; }
+function schrijfNaarNieuweTafelSnel() {
+  if(Object.values(counts).every(v => v === 0)) {
+    showToast('Tap eerst drankjes'); return;
+  }
+  const naam = 'Bon ' + (tafels.length + 1);
   const nu = new Date();
   const tijd = nu.getHours() + ':' + String(nu.getMinutes()).padStart(2,'0');
   const bon = { id: Date.now(), naam, regels: [], gesloten: false, tijd };
@@ -1629,32 +1638,12 @@ function schrijfNaarNieuweTafel() {
   schrijfCountsNaarBon(bon.id);
 }
 
-function schrijfNaarBestaandeTafel(id) {
-  schrijfCountsNaarBon(id);
-}
+// Sluit dropdown bij klik buiten
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('tafelDropdown');
+  const btn = document.getElementById('tafelDropdownBtn');
+  if (dd && btn && !dd.contains(e.target) && !btn.contains(e.target)) {
+    dd.style.display = 'none';
+  }
+});
 
-function schrijfCountsNaarBon(id) {
-  const bon = tafels.find(t => t.id === id);
-  if (!bon) return;
-  let toegevoegd = 0;
-  Object.entries(counts).forEach(function(entry) {
-    const k = entry[0]; const qty = entry[1];
-    if (qty > 0 && drinks[k]) {
-      const d = drinks[k];
-      const bestaand = bon.regels.find(r => r.key === k);
-      if (bestaand) { bestaand.qty += qty; }
-      else { bon.regels.push({ key: k, label: d.label, qty, price: d.price, miceId: d.miceId }); }
-      toegevoegd += qty;
-    }
-  });
-  if (toegevoegd === 0) { showToast('Niets om weg te schrijven'); return; }
-  Object.keys(counts).forEach(k => { counts[k] = 0; });
-  document.querySelectorAll('.d-count').forEach(el => el.textContent = '0');
-  if (typeof updateKassa === 'function') updateKassa();
-  sluitTafelModal();
-  showToast('✓ Weggeschreven naar ' + bon.naam);
-}
-
-</script>
-</body>
-</html>
