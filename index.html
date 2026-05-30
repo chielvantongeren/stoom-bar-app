@@ -356,7 +356,7 @@ html,body{height:100%;background:#132d4a;}
     <!-- Drankjes toevoegen -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
       <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Toevoegen aan bon</div>
-      <div id="bon-drink-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
+      <div id="bon-drink-grid" style="display:none;"></div>
       <button onclick="voegToeAanBon()" style="width:100%;margin-top:10px;padding:10px;background:var(--bg3);border:none;border-radius:8px;color:var(--gold);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">
         + Toevoegen aan bon
       </button>
@@ -1707,6 +1707,19 @@ document.addEventListener('click', function(e) {
     dd.style.display = 'none';
   }
 });
+
+
+function hernoembBon() {
+  var bon = tafels.find(function(t){ return t.id === activeBonId; });
+  if (!bon) return;
+  var nieuwNaam = prompt('Hernoem bon:', bon.naam);
+  if (nieuwNaam && nieuwNaam.trim()) {
+    bon.naam = nieuwNaam.trim();
+    var el = document.getElementById('bon-titel');
+    if (el) el.textContent = bon.naam;
+    showToast('✓ Hernoemd naar ' + bon.naam);
+  }
+}
 
 </script>
 </body>
