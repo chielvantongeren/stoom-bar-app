@@ -8,7 +8,36 @@
 <meta name="apple-mobile-web-app-title" content="STOOM"/>
 <title>STOOM Evenementen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js">
+function sluitBetaalOverlay() {
+  var el = document.getElementById('betaalOverlay');
+  if (el) el.remove();
+}
+function toonBetaalLink(url, bedrag) {
+  sluitBetaalOverlay();
+  var overlay = document.createElement('div');
+  overlay.id = 'betaalOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#000b;z-index:9999;display:flex;align-items:center;justify-content:center;';
+  var bedragStr = parseFloat(bedrag).toFixed(2).replace('.',',');
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:var(--bg2);border-radius:16px;padding:24px 20px;width:90%;max-width:380px;text-align:center;';
+  inner.innerHTML =
+    '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">Betaalverzoek klaar</div>' +
+    '<div style="font-family:Oswald,sans-serif;font-size:32px;color:var(--text);margin-bottom:16px;">&euro; ' + bedragStr + '</div>' +
+    '<canvas id="qrCanvas" style="margin:0 auto 16px;display:block;border-radius:8px;background:#fff;padding:8px;"></canvas>' +
+    '<a href="' + url + '" style="display:block;padding:14px;background:var(--gold);border-radius:10px;color:var(--bg3);font-family:Oswald,sans-serif;font-size:15px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;margin-bottom:10px;">Betalen</a>';
+  var sluitBtn = document.createElement('button');
+  sluitBtn.textContent = 'Sluiten';
+  sluitBtn.style.cssText = 'width:100%;padding:11px;background:none;border:1px solid var(--border2);border-radius:10px;color:var(--dimmed);font-family:Oswald,sans-serif;font-size:12px;cursor:pointer;';
+  sluitBtn.onclick = sluitBetaalOverlay;
+  inner.appendChild(sluitBtn);
+  overlay.appendChild(inner);
+  document.body.appendChild(overlay);
+  try {
+    new QRious({ element: document.getElementById('qrCanvas'), value: url, size: 200, background: '#ffffff', foreground: '#132d4a' });
+  } catch(e) {}
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -1262,55 +1291,25 @@ function resetChecklist(){
 
 // MOLLIE + QR
 async function maakBetaalverzoek() {
-  const hasPrices = Object.keys(drinks).some(k=>drinks[k].price>0);
-  let bedrag = 0;
-  Object.keys(drinks).forEach(k=>{
-    if(counts[k]>0) bedrag += counts[k]*drinks[k].price;
-  });
-
-  if(!hasPrices || bedrag <= 0) {
-    showToast('⚠️ Stel eerst prijzen in via het Prijzen tabblad');
-    return;
-  }
-
-  const klant = document.getElementById('klant').value || 'Klant';
-  const btn = document.getElementById('mollieBtn');
-  btn.textContent = '⏳ Betaalverzoek aanmaken...';
-  btn.disabled = true;
-
-  try {
-    const resp = await fetch(`${API_BASE}/mollie`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        amount: bedrag.toFixed(2),
-        description: `STOOM Apeldoorn – ${klant}`,
-        redirectUrl: window.location.href
-      })
-    });
-
-    const data = await resp.json();
-    if(data.error) throw new Error(data.error);
-
-    // Toon QR modal
-    const checkoutUrl = data.checkoutUrl;
-    document.getElementById('qrBedrag').textContent = '€ ' + parseFloat(data.amount?.value||bedrag).toFixed(2).replace('.',',');
-    document.getElementById('qrLink').href = checkoutUrl;
-    document.getElementById('qrSub').textContent = `Scan om € ${bedrag.toFixed(2).replace('.',',')} te betalen voor ${klant}`;
-
-    // Genereer QR code
-    tekenQR(checkoutUrl);
-    document.getElementById('qrOverlay').classList.add('show');
-    showToast('✓ Betaalverzoek aangemaakt!');
-
-  } catch(err) {
-    showToast('⚠️ Mollie fout: ' + err.message);
-  } finally {
-    btn.textContent = '💳 Betaalverzoek + QR';
-    btn.disabled = false;
-  }
+  var hasPrices = Object.keys(drinks).some(function(k){ return drinks[k].price>0; });
+  var bedrag = 0;
+  Object.keys(drinks).forEach(function(k){ if(counts[k]>0) bedrag += counts[k]*drinks[k].price; });
+  if(!hasPrices || bedrag <= 0) { showToast('Stel eerst prijzen in'); return; }
+  var klant = document.getElementById('klant').value || 'Klant';
+  var btn = document.getElementById('mollieBtn');
+  btn.textContent = 'Even wachten...'; btn.disabled = true;
+  fetch('/api/mollie', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({amount:bedrag.toFixed(2), description: klant})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    btn.textContent = 'Betaalverzoek + QR'; btn.disabled = false;
+    if(data.checkoutUrl) { toonBetaalLink(data.checkoutUrl, bedrag); }
+    else { showToast('Fout: ' + (data.error||'onbekend')); }
+  })
+  .catch(function(e){ btn.textContent='Betaalverzoek + QR'; btn.disabled=false; showToast('Fout: '+e.message); });
 }
-
 function tekenQR(text) {
   const canvas = document.getElementById('qrCanvas');
   const ctx = canvas.getContext('2d');
@@ -1616,25 +1615,21 @@ async function bonOpslaan() {
 }
 
 function bonQR() {
-  var bon = tafels.find(function(t){ return t.id === activeBonId; });
+  var bon = tafels ? tafels.find(function(t){ return t.id === activeBonId; }) : null;
   if (!bon || bon.regels.length === 0) { showToast('Bon is leeg'); return; }
-  var totaal = bonTotaal(bon);
+  var totaal = bon.regels.reduce(function(s,r){ return s + r.qty * r.price; }, 0);
   if (totaal <= 0) { showToast('Totaal is 0'); return; }
-  var klant = document.getElementById('klant') ? document.getElementById('klant').value : 'STOOM';
-  var omschrijving = bon.naam + (klant ? ' - ' + klant : '');
-  showToast('⏳ Betaalverzoek aanmaken...');
+  var klantEl = document.getElementById('klant');
+  var omschrijving = bon.naam + (klantEl && klantEl.value ? ' - ' + klantEl.value : '');
+  showToast('Even wachten...');
   fetch('/api/mollie', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    method: 'POST', headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({amount: totaal.toFixed(2), description: omschrijving})
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
-    if (data.checkoutUrl) {
-      window.open(data.checkoutUrl, '_blank');
-    } else {
-      showToast('Fout: ' + (data.error || 'onbekend'));
-    }
+    if (data.checkoutUrl) { toonBetaalLink(data.checkoutUrl, totaal); }
+    else { showToast('Fout: ' + (data.error || 'onbekend')); }
   })
   .catch(function(e){ showToast('Fout: ' + e.message); });
 }
