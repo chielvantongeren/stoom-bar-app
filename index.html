@@ -323,6 +323,10 @@ html,body{height:100%;background:#132d4a;}
         </div>
       </div>
     </div>
+    <div id="drinks-tafels-blok" style="margin:14px 0;display:none;">
+      <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Tik een tafel om de bestelling weg te schrijven</div>
+      <div id="drinks-tafels-tegels" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
+    </div>
     <div class="btn-row">
       <button class="abtn mollie" id="mollieBtn" onclick="maakBetaalverzoek()">💳 Betaalverzoek + QR</button>
     </div>
@@ -1132,6 +1136,8 @@ function updateSummary(){
   let html='';
   rows.forEach(r=>{html+=`<div class="af-sum-row"><span class="af-sum-lbl">${r.lbl}</span><span class="af-sum-val ${r.on?'on':'off'}">${r.val}</span></div>`;});
   document.getElementById('af-summary').innerHTML=html||'<div style="color:var(--dimmed);font-size:14px;">Nog geen afspraken ingesteld</div>';
+
+  if(typeof renderDrinksTafels === "function") renderDrinksTafels();
 }
 
 function getSession(){
@@ -1675,6 +1681,51 @@ function schrijfCountsNaarBon(id) {
 
 
 
+
+// ── TAFEL-TEGELS OP DRANKJESSCHERM ──────────────────────────
+function renderDrinksTafels() {
+  var blok = document.getElementById('drinks-tafels-blok');
+  var tegels = document.getElementById('drinks-tafels-tegels');
+  if (!blok || !tegels) return;
+  var open = tafels.filter(function(t){ return !t.gesloten; });
+  var heeftDrankjes = Object.values(counts).some(function(v){ return v > 0; });
+  // Toon blok alleen als er open tafels zijn
+  if (open.length === 0) { blok.style.display = 'none'; return; }
+  blok.style.display = 'block';
+  var html = '';
+  open.forEach(function(t) {
+    var tot = bonTotaal(t);
+    var actief = heeftDrankjes ? 'border-color:var(--gold);' : 'border-color:var(--border2);opacity:.7;';
+    html += '<div onclick="schrijfCountsNaarBon(' + t.id + ')" style="background:var(--bg3);border:1.5px solid;' + actief + 'border-radius:10px;padding:10px 12px;cursor:pointer;">' +
+      '<div style="font-family:Oswald,sans-serif;font-size:14px;color:var(--text);">' + t.naam + '</div>' +
+      '<div style="font-size:10px;color:var(--dimmed);margin-top:2px;">' + t.regels.length + ' item(s) · € ' + tot.toFixed(2).replace('.',',') + '</div>' +
+    '</div>';
+  });
+  tegels.innerHTML = html;
+}
+
+// Schrijf de huidige getikte counts weg naar een bestaande bon
+function schrijfCountsNaarBon(id) {
+  var heeftDrankjes = Object.values(counts).some(function(v){ return v > 0; });
+  if (!heeftDrankjes) { showToast('Tik eerst drankjes'); return; }
+  var bon = tafels.find(function(t){ return t.id === id; });
+  if (!bon) return;
+  Object.keys(counts).forEach(function(k) {
+    if (counts[k] > 0) {
+      var d = drinks[k];
+      var bestaand = bon.regels.find(function(r){ return r.key === k; });
+      if (bestaand) { bestaand.qty += counts[k]; }
+      else { bon.regels.push({ key: k, label: d.label, qty: counts[k], price: d.price, miceId: d.miceId }); }
+    }
+  });
+  saveTafels();
+  // Reset de counts
+  Object.keys(counts).forEach(function(k){ counts[k] = 0; });
+  updateSummary();
+  renderDrinksTafels();
+  showToast('✓ Toegevoegd aan ' + bon.naam);
+}
+
 // ── TAFELS TEGELS ────────────────────────────────────────────
 function renderTafelsOverzicht() {
   var tegels = document.getElementById('tafels-tegels');
@@ -1724,7 +1775,7 @@ function maakNieuweTafelVanTab() {
   var tijd = nu.getHours() + ':' + String(nu.getMinutes()).padStart(2,'0');
   var bon = { id: Date.now(), naam: naam, regels: [], gesloten: false, tijd: tijd };
   tafels.push(bon);
-  saveTafels();
+  saveTafels(); if(typeof renderDrinksTafels==="function") renderDrinksTafels();
   sluitNieuweTafelForm();
   renderTafelsOverzicht();
   showToast('✓ Tafel ' + naam + ' aangemaakt');
