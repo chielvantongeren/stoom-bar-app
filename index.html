@@ -310,13 +310,11 @@ html,body{height:100%;background:#132d4a;}
     <div class="btn-row">
       <button class="abtn mice" id="micesSendBtn" onclick="stuurNaarMice()" disabled>🔗 Opslaan in MICE</button>
     </div>
-    <div class="btn-row" style="position:relative;">
-      <button class="abtn" id="tafelSaveBtn" onclick="openOpslaanOpTafel()" style="background:var(--bg3);border-color:var(--border2);color:var(--text);">&#x1FA91; Opslaan op tafel</button>
-      <div id="tafelDropdown" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;z-index:200;overflow:hidden;box-shadow:0 -4px 20px #0008;">
-        <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;padding:8px 12px 4px;">Kies een tafel</div>
+    
+    </div>
         <div id="tafelDropdownLijst"></div>
         <div style="border-top:1px solid var(--border2);padding:8px 10px;display:flex;gap:6px;">
-          <input id="nieuwe-tafel-naam" type="text" placeholder="Naam nieuwe tafel..." autocomplete="off"
+          <input id="nieuwe-tafel-naam" type="text" placeholder="Naam nieuwe bon..." autocomplete="off"
             style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;"/>
           <button onclick="schrijfNaarNieuweTafel()" style="padding:7px 14px;background:var(--gold);border:none;border-radius:6px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">+</button>
         </div>
@@ -1439,7 +1437,11 @@ function renderTafelsOverzicht() {
   if (!tegels) return;
   var open = tafels.filter(function(t){ return !t.gesloten; });
   var gesloten = tafels.filter(function(t){ return t.gesloten; });
-  var html = '';
+  // Nieuwe tafel tegel altijd eerst (vaste plek linksboven)
+  var html = '<div onclick="openNieuweTafelForm()" style="background:var(--bg2);border:1.5px dashed var(--gold);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">' +
+    '<div style="font-size:28px;color:var(--gold);">+</div>' +
+    '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);">Nieuwe tafel</div>' +
+  '</div>';
   open.forEach(function(t) {
     var tot = bonTotaal(t);
     html += '<div onclick="openBon(' + t.id + ')" style="background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;justify-content:space-between;">' +
@@ -1456,11 +1458,6 @@ function renderTafelsOverzicht() {
       '<div style="font-family:Oswald,sans-serif;font-size:20px;color:var(--dimmed);margin-top:8px;">€ ' + tot.toFixed(2).replace('.',',') + '</div>' +
     '</div>';
   });
-  // Nieuwe tafel tegel altijd onderaan
-  html += '<div onclick="openNieuweTafelForm()" style="background:var(--bg2);border:1.5px dashed var(--border2);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">' +
-    '<div style="font-size:28px;color:var(--dimmed);">+</div>' +
-    '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dimmed);">Nieuwe tafel</div>' +
-  '</div>';
   tegels.innerHTML = html;
 }
 
