@@ -335,13 +335,9 @@ html,body{height:100%;background:#132d4a;}
 
   <!-- AFSPRAKEN TAB -->
   <div class="tab-content" id="tab-tafels">
-  <!-- TAFELS OVERZICHT -->
+  <!-- OVERZICHT: tegels + nieuwe tafel tegel -->
   <div id="tafels-overzicht">
-    <div id="tafels-tegels" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;"></div>
-    <div onclick="openNieuweTafelForm()" style="background:var(--bg2);border:1.5px dashed var(--border2);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">
-      <div style="font-size:24px;color:var(--dimmed);">+</div>
-      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--dimmed);">Nieuwe tafel</div>
-    </div>
+    <div id="tafels-tegels" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
   </div>
 
   <!-- NIEUWE TAFEL FORM -->
@@ -368,15 +364,15 @@ html,body{height:100%;background:#132d4a;}
       </div>
       <div id="bon-totaal-badge" style="font-family:'Oswald',sans-serif;font-size:22px;color:var(--gold);font-weight:700;"></div>
     </div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;">
       <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Bon overzicht</div>
       <div id="bon-regels"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <button onclick="bonQR()" style="padding:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">💳 QR Betaalverzoek</button>
       <button onclick="bonOpslaan()" style="padding:11px;background:var(--gold);border:none;border-radius:10px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">💾 Opslaan MICE</button>
     </div>
-    <button onclick="sluitBonAf()" style="width:100%;margin-top:8px;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">✓ Bon afsluiten</button>
+    <button onclick="sluitBonAf()" style="width:100%;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">✓ Bon afsluiten</button>
   </div>
 <div class="tab-content" id="tab-afspraken">
     <div class="af-summary-section">
@@ -1436,7 +1432,35 @@ let tafels = []; // [{id, naam, regels:[{key,label,qty,price}], gesloten, timest
 let activeBonId = null;
 let bonCounts = {};
 
-
+function renderTafelsOverzicht() {
+  var tegels = document.getElementById('tafels-tegels');
+  if (!tegels) return;
+  var open = tafels.filter(function(t){ return !t.gesloten; });
+  var gesloten = tafels.filter(function(t){ return t.gesloten; });
+  var html = '';
+  open.forEach(function(t) {
+    var tot = bonTotaal(t);
+    html += '<div onclick="openBon(' + t.id + ')" style="background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div style="font-family:Oswald,sans-serif;font-size:15px;color:var(--text);font-weight:600;">' + t.naam + '</div>' +
+      '<div style="font-size:11px;color:var(--dimmed);margin-top:4px;">' + t.regels.length + ' item(s) · ' + t.tijd + '</div>' +
+      '<div style="font-family:Oswald,sans-serif;font-size:20px;color:var(--gold);margin-top:8px;">€ ' + tot.toFixed(2).replace('.',',') + '</div>' +
+    '</div>';
+  });
+  gesloten.forEach(function(t) {
+    var tot = bonTotaal(t);
+    html += '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px;opacity:.5;min-height:90px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div style="font-family:Oswald,sans-serif;font-size:15px;color:var(--dimmed);">' + t.naam + '</div>' +
+      '<div style="font-size:11px;color:var(--dimmed);margin-top:4px;">Afgesloten</div>' +
+      '<div style="font-family:Oswald,sans-serif;font-size:20px;color:var(--dimmed);margin-top:8px;">€ ' + tot.toFixed(2).replace('.',',') + '</div>' +
+    '</div>';
+  });
+  // Nieuwe tafel tegel altijd onderaan
+  html += '<div onclick="openNieuweTafelForm()" style="background:var(--bg2);border:1.5px dashed var(--border2);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">' +
+    '<div style="font-size:28px;color:var(--dimmed);">+</div>' +
+    '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--dimmed);">Nieuwe tafel</div>' +
+  '</div>';
+  tegels.innerHTML = html;
+}
 
 function bonTotaal(bon) {
   return bon.regels.reduce((sum, r) => sum + (r.qty * r.price), 0);
