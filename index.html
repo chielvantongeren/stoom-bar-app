@@ -273,7 +273,11 @@ html,body{height:100%;background:#132d4a;}
   </div>
 
   <!-- DRINKS TAB -->
-  <div class="tab-content active" id="tab-drinks">
+  <div id="tafel-strip" style="display:none;padding:6px 10px 0;background:var(--bg2);border-bottom:1px solid var(--border2);">
+  <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Open tafels</div>
+  <div id="tafel-strip-tegels" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;"></div>
+</div>
+<div class="tab-content active" id="tab-drinks">
   <div class="drink-grid-main">
     <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:2px;margin-bottom:2px;">Warme dranken &amp; Fris</div>
     <button class="drink-btn" onclick="tap('koffie')"><span class="d-icon">☕</span><span class="d-name">Koffie / Thee</span><span class="d-count" id="cnt-koffie">0</span></button>
@@ -567,27 +571,6 @@ html,body{height:100%;background:#132d4a;}
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Extra functies - bovenaan zodat Cloudflare ze niet blokkeert
-
-function renderTafelStrip() {
-  var strip = document.getElementById('tafel-strip');
-  var tegels = document.getElementById('tafel-strip-tegels');
-  if (!strip || !tegels) return;
-  var open = tafels.filter(function(t){ return !t.gesloten; });
-  if (open.length === 0) {
-    strip.style.display = 'none';
-    return;
-  }
-  strip.style.display = 'block';
-  tegels.innerHTML = open.map(function(t) {
-    var tot = bonTotaal(t);
-    return '<div onclick="switchTab(\'tafels\'); setTimeout(function(){ openBon(' + t.id + '); }, 50);" ' +
-      'style="flex-shrink:0;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;padding:6px 10px;cursor:pointer;min-width:80px;text-align:center;">' +
-      '<div style="font-family:Oswald,sans-serif;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">' + t.naam + '</div>' +
-      '<div style="font-family:Oswald,sans-serif;font-size:13px;color:var(--gold);margin-top:2px;">€' + tot.toFixed(2).replace('.',',') + '</div>' +
-    '</div>';
-  }).join('');
-}
-
 function sluitBetaalOverlay() {
   var el = document.getElementById('betaalOverlay');
   if (el) el.remove();
@@ -625,11 +608,9 @@ function toonBetaalLink(url, bedrag) {
 }
 function saveTafels() {
   try { localStorage.setItem('stoom_tafels', JSON.stringify(tafels)); } catch(e) {}
-  renderTafelStrip();
 }
 function loadTafels() {
   try { tafels = JSON.parse(localStorage.getItem('stoom_tafels') || '[]'); } catch(e) { tafels = []; }
-  renderTafelStrip();
 }
 function saveField(id, val) {
   try { localStorage.setItem('sf_' + id, val); } catch(e) {}
