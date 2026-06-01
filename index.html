@@ -868,6 +868,7 @@ async function laadReservering() {
 
     showToast('✓ ' + naam + ' geladen');
     if(res.activities && res.activities.length) { laadDraaiboekVanMice(res.activities); laadAfsprakenVanMice(res.activities); }
+    setTimeout(function(){ switchTab('drinks'); }, 800);
   }
 }
 
