@@ -273,11 +273,7 @@ html,body{height:100%;background:#132d4a;}
   </div>
 
   <!-- DRINKS TAB -->
-  <div id="tafel-strip" style="display:none;padding:6px 10px 0;background:var(--bg2);border-bottom:1px solid var(--border2);">
-  <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Open tafels</div>
-  <div id="tafel-strip-tegels" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;"></div>
-</div>
-<div class="tab-content active" id="tab-drinks">
+  <div class="tab-content active" id="tab-drinks">
   <div class="drink-grid-main">
     <div style="grid-column:1/-1;font-family:'Oswald',sans-serif;font-weight:600;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);border-left:3px solid var(--gold);padding-left:6px;margin-top:2px;margin-bottom:2px;">Warme dranken &amp; Fris</div>
     <button class="drink-btn" onclick="tap('koffie')"><span class="d-icon">☕</span><span class="d-name">Koffie / Thee</span><span class="d-count" id="cnt-koffie">0</span></button>
@@ -349,7 +345,7 @@ html,body{height:100%;background:#132d4a;}
 
   <!-- AFSPRAKEN TAB -->
   <div class="tab-content" id="tab-tafels">
-  <!-- TAFELS OVERZICHT -->
+  <!-- OVERZICHT: tegels bovenaan -->
   <div id="tafels-overzicht">
     <div id="tafels-tegels" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:10px;"></div>
     <button onclick="openNieuweTafelForm()" style="width:100%;padding:12px;background:var(--bg2);border:1.5px dashed var(--border2);border-radius:10px;color:var(--dimmed);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">+ Nieuwe tafel</button>
@@ -366,9 +362,10 @@ html,body{height:100%;background:#132d4a;}
     </div>
   </div>
 
-  <!-- BON DETAIL -->
-  <div id="tafels-bon" style="display:none;">
+  <!-- BON DETAIL: tegels bovenaan, knoppen onderaan -->
+  <div id="tafels-bon" style="display:none;display:flex;flex-direction:column;height:100%;">
     <div onclick="sluitBon()" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--dimmed);cursor:pointer;margin-bottom:10px;">← Terug naar tafels</div>
+    <!-- Bon header met naam + totaal -->
     <div style="background:var(--bg3);border-radius:10px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
       <div>
         <div style="font-size:11px;color:var(--gold);letter-spacing:1px;text-transform:uppercase;">Tafel</div>
@@ -379,15 +376,17 @@ html,body{height:100%;background:#132d4a;}
       </div>
       <div id="bon-totaal-badge" style="font-family:'Oswald',sans-serif;font-size:22px;color:var(--gold);font-weight:700;"></div>
     </div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
+    <!-- Bon regels: neemt beschikbare ruimte -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;flex:1;overflow-y:auto;">
       <div style="font-size:11px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Bon overzicht</div>
       <div id="bon-regels"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+    <!-- Knoppen onderaan -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <button onclick="bonQR()" style="padding:11px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">💳 QR Betaalverzoek</button>
       <button onclick="bonOpslaan()" style="padding:11px;background:var(--gold);border:none;border-radius:10px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">💾 Opslaan MICE</button>
     </div>
-    <button onclick="sluitBonAf()" style="width:100%;margin-top:8px;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">✓ Bon afsluiten</button>
+    <button onclick="sluitBonAf()" style="width:100%;padding:11px;background:#c0392b22;border:1px solid #c0392b44;border-radius:10px;color:#e74c3c;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">✓ Bon afsluiten</button>
   </div>
 <div class="tab-content" id="tab-afspraken">
     <div class="af-summary-section">
