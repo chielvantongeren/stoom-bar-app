@@ -1436,58 +1436,7 @@ let tafels = []; // [{id, naam, regels:[{key,label,qty,price}], gesloten, timest
 let activeBonId = null;
 let bonCounts = {};
 
-function renderTafelsOverzicht() {
-  const lijst = document.getElementById('tafels-lijst');
-  if (!lijst) return;
-  const open = tafels.filter(t => !t.gesloten);
-  const gesloten = tafels.filter(t => t.gesloten);
-  let html = '';
-
-  if (tafels.length === 0) {
-    html = '<div style="text-align:center;padding:30px;color:var(--dimmed);font-size:14px;">Nog geen bonnen aangemaakt</div>';
-  }
-
-  open.forEach(t => {
-    const totaal = bonTotaal(t);
-    html += `<div onclick="openBon(${t.id})" style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-family:'Oswald',sans-serif;font-size:15px;color:var(--text);">${t.naam}</div>
-        <div style="font-size:12px;color:var(--dimmed);margin-top:2px;">${t.regels.length} item(s) · ${t.tijd}</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--gold);">€ ${totaal.toFixed(2).replace('.',',')}</div>
-        <div style="font-size:11px;padding:2px 8px;background:var(--gold)22;color:var(--gold);border-radius:6px;margin-top:4px;font-family:'Oswald',sans-serif;letter-spacing:.5px;">OPEN</div>
-      </div>
-    </div>`;
-  });
-
-  gesloten.forEach(t => {
-    const totaal = bonTotaal(t);
-    html += `<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;opacity:.6;">
-      <div>
-        <div style="font-family:'Oswald',sans-serif;font-size:15px;color:var(--text);">${t.naam}</div>
-        <div style="font-size:12px;color:var(--dimmed);margin-top:2px;">Afgesloten · ${t.tijd}</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-family:'Oswald',sans-serif;font-size:18px;color:var(--dimmed);">€ ${totaal.toFixed(2).replace('.',',')}</div>
-        <div style="font-size:11px;padding:2px 8px;background:var(--bg3);color:var(--dimmed);border-radius:6px;margin-top:4px;font-family:'Oswald',sans-serif;letter-spacing:.5px;">AFGESLOTEN</div>
-      </div>
-    </div>`;
-  });
-
-  lijst.innerHTML = html;
-
-  // Totaalbalk
-  const totaalEl = document.getElementById('tafels-totaal');
-  const totaalBedrag = document.getElementById('tafels-totaal-bedrag');
-  if (open.length > 0) {
-    const totaal = open.reduce((sum, t) => sum + bonTotaal(t), 0);
-    totaalEl.style.display = 'flex';
-    totaalBedrag.textContent = '€ ' + totaal.toFixed(2).replace('.', ',');
-  } else {
-    totaalEl.style.display = 'none';
-  }
-}
+// renderTafelsOverzicht zie nieuwe versie hieronder
 
 function bonTotaal(bon) {
   return bon.regels.reduce((sum, r) => sum + (r.qty * r.price), 0);
