@@ -1827,13 +1827,15 @@ function renderTafelDropdownLijst() {
     lijst.innerHTML = '<div style="padding:8px 12px;font-size:12px;color:var(--dimmed);">Nog geen open bonnen</div>';
     return;
   }
-  lijst.innerHTML = open.map(function(t) {
-    var totaal = bonTotaal(t);
-    return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ');sluitTafelModal();" style="padding:10px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border2);">' +
-      '<span style="font-family:Oswald,sans-serif;font-size:13px;color:var(--text);">' + t.naam + '</span>' +
-      '<span style="font-family:Oswald,sans-serif;font-size:13px;color:var(--gold);">\u20ac ' + totaal.toFixed(2).replace('.',',') + '</span>' +
-    '</div>';
-  }).join('');
+  lijst.innerHTML = '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;padding:8px 10px;">' +
+    open.map(function(t) {
+      var totaal = bonTotaal(t);
+      return '<div onclick="schrijfNaarBestaandeTafel(' + t.id + ');sluitTafelModal();" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;cursor:pointer;">' +
+        '<div style="font-family:Oswald,sans-serif;font-size:14px;color:var(--text);">' + t.naam + '</div>' +
+        '<div style="font-family:Oswald,sans-serif;font-size:12px;color:var(--gold);margin-top:3px;">\u20ac ' + totaal.toFixed(2).replace('.',',') + '</div>' +
+      '</div>';
+    }).join('') +
+  '</div>';
 }
 
 function schrijfNaarNieuweTafelSnel() {
