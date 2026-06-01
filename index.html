@@ -1123,8 +1123,11 @@ function stepAf(key,delta){
 }
 
 function updateSummary(){
-  const eindOmschr=document.getElementById('eindsnack-omschrijving').value;
-  const notities=document.getElementById('notities').value;
+  var _es=document.getElementById('eindsnack-omschrijving');
+  var _nt=document.getElementById('notities');
+  if(!_es||!_nt||!document.getElementById('af-summary')) return;
+  const eindOmschr=_es.value;
+  const notities=_nt.value;
   const rows=[
     {lbl:'🥂 Prosecco welkomst',val:af.prosecco?'Ja':'Nee',on:af.prosecco},
     {lbl:'🥜 Nootjes / Zoutjes',val:af.nootjes?'Ja':'Nee',on:af.nootjes},
@@ -1229,11 +1232,11 @@ function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{
     b.classList.toggle('active',['drinks','tafels','afspraken','checklist','draaiboek','prijzen','mice'][i]===tab);
   });
-  if(tab==='afspraken') updateSummary();
-  if(tab==='checklist') buildChecklist();
-  if(tab==='tafels') renderTafelsOverzicht();
-  if(tab==='draaiboek') renderDraaiboek();
-  if(tab==='prijzen') buildPriceEditor();
+  try { if(tab==='afspraken') updateSummary(); } catch(e){ console.warn('afspraken render:',e); }
+  try { if(tab==='checklist') buildChecklist(); } catch(e){ console.warn('checklist render:',e); }
+  try { if(tab==='tafels') renderTafelsOverzicht(); } catch(e){ console.warn('tafels render:',e); }
+  try { if(tab==='draaiboek') renderDraaiboek(); } catch(e){ console.warn('draaiboek render:',e); }
+  try { if(tab==='prijzen') buildPriceEditor(); } catch(e){ console.warn('prijzen render:',e); }
 }
 
 const checklist={
