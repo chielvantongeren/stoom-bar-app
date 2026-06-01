@@ -310,6 +310,17 @@ html,body{height:100%;background:#132d4a;}
       <div class="kassa-amount" id="kassaAmount">€ 0,00</div>
     </div>
     <div class="totals-card"><div class="totals-inner" id="totalsRows"></div></div>
+    <div class="btn-row" style="position:relative;">
+      <button class="abtn" onclick="openOpslaanOpTafel()" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);padding:13px 12px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">🪑 Opslaan op tafel</button>
+      <div id="tafelDropdown" style="display:none;position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;z-index:200;overflow:hidden;box-shadow:0 -4px 20px #0008;">
+        <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;padding:8px 12px 4px;">Kies een bestaande tafel</div>
+        <div id="tafelDropdownLijst"></div>
+        <div style="border-top:1px solid var(--border2);padding:8px 10px;display:flex;gap:6px;">
+          <input id="nieuwe-tafel-naam" type="text" placeholder="Naam nieuwe tafel..." autocomplete="off" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;color:var(--text);font-size:13px;"/>
+          <button onclick="schrijfNaarNieuweTafel();sluitTafelModal();" style="padding:8px 16px;background:var(--gold);border:none;border-radius:6px;color:var(--bg3);font-family:'Oswald',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">+</button>
+        </div>
+      </div>
+    </div>
     <div id="drinks-tafels-blok" style="margin:14px 0;display:none;">
       <div style="font-size:10px;color:var(--dimmed);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Tik een tafel om de bestelling weg te schrijven</div>
       <div id="drinks-tafels-tegels" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;"></div>
