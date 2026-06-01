@@ -567,6 +567,27 @@ html,body{height:100%;background:#132d4a;}
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Extra functies - bovenaan zodat Cloudflare ze niet blokkeert
+
+function renderTafelStrip() {
+  var strip = document.getElementById('tafel-strip');
+  var tegels = document.getElementById('tafel-strip-tegels');
+  if (!strip || !tegels) return;
+  var open = tafels.filter(function(t){ return !t.gesloten; });
+  if (open.length === 0) {
+    strip.style.display = 'none';
+    return;
+  }
+  strip.style.display = 'block';
+  tegels.innerHTML = open.map(function(t) {
+    var tot = bonTotaal(t);
+    return '<div onclick="switchTab(\'tafels\'); setTimeout(function(){ openBon(' + t.id + '); }, 50);" ' +
+      'style="flex-shrink:0;background:var(--bg3);border:1px solid var(--gold);border-radius:8px;padding:6px 10px;cursor:pointer;min-width:80px;text-align:center;">' +
+      '<div style="font-family:Oswald,sans-serif;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px;">' + t.naam + '</div>' +
+      '<div style="font-family:Oswald,sans-serif;font-size:13px;color:var(--gold);margin-top:2px;">€' + tot.toFixed(2).replace('.',',') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
 function sluitBetaalOverlay() {
   var el = document.getElementById('betaalOverlay');
   if (el) el.remove();
@@ -604,9 +625,11 @@ function toonBetaalLink(url, bedrag) {
 }
 function saveTafels() {
   try { localStorage.setItem('stoom_tafels', JSON.stringify(tafels)); } catch(e) {}
+  renderTafelStrip();
 }
 function loadTafels() {
   try { tafels = JSON.parse(localStorage.getItem('stoom_tafels') || '[]'); } catch(e) { tafels = []; }
+  renderTafelStrip();
 }
 function saveField(id, val) {
   try { localStorage.setItem('sf_' + id, val); } catch(e) {}
