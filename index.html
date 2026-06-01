@@ -1656,29 +1656,6 @@ function schrijfNaarBestaandeTafel(id) {
   schrijfCountsNaarBon(id);
 }
 
-function schrijfCountsNaarBon(id) {
-  const bon = tafels.find(t => t.id === id);
-  if (!bon) return;
-  let toegevoegd = 0;
-  Object.entries(counts).forEach(function(entry) {
-    const k = entry[0]; const qty = entry[1];
-    if (qty > 0 && drinks[k]) {
-      const d = drinks[k];
-      const bestaand = bon.regels.find(r => r.key === k);
-      if (bestaand) { bestaand.qty += qty; }
-      else { bon.regels.push({ key: k, label: d.label, qty, price: d.price, miceId: d.miceId }); }
-      toegevoegd += qty;
-    }
-  });
-  if (toegevoegd === 0) { showToast('Niets om weg te schrijven'); return; }
-  Object.keys(counts).forEach(k => { counts[k] = 0; });
-  document.querySelectorAll('.d-count').forEach(el => el.textContent = '0');
-  if (typeof updateSummary === 'function') updateSummary();
-  if (typeof updateKassaBanner === 'function') updateKassaBanner();
-  sluitTafelModal();
-  saveTafels();
-  showToast('✓ Weggeschreven naar ' + bon.naam);
-}
 
 
 
@@ -1720,10 +1697,14 @@ function schrijfCountsNaarBon(id) {
     }
   });
   saveTafels();
-  // Reset de counts
+  // --- Alles op nul voor de volgende bestelling ---
   Object.keys(counts).forEach(function(k){ counts[k] = 0; });
-  updateSummary();
-  renderDrinksTafels();
+  try { hist.length = 0; } catch(e) {}
+  document.querySelectorAll('.d-count').forEach(function(el){ el.textContent = '0'; });
+  if (typeof updateTotals === 'function') updateTotals();
+  if (typeof updateSummary === 'function') updateSummary();
+  if (typeof renderDrinksTafels === 'function') renderDrinksTafels();
+  if (typeof sluitTafelModal === 'function') sluitTafelModal();
   showToast('✓ Toegevoegd aan ' + bon.naam);
 }
 
