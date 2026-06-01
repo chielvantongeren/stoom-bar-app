@@ -1,8 +1,22 @@
 {
-  "version": 2,
-  "routes": [
-    {"src": "/draaiboek.js", "dest": "/draaiboek.js"},
-    {"src": "/api/(.*)", "dest": "/api/$1"},
-    {"src": "/(.*)", "dest": "/index.html"}
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
   ]
 }
