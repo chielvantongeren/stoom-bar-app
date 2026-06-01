@@ -1858,6 +1858,14 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// ── Herstel opgeslagen staat bij laden ──────────────────────
+(function herstelStaat() {
+  try { if (typeof loadTafels === 'function') loadTafels(); } catch(e) {}
+  try { if (typeof loadFields === 'function') loadFields(); } catch(e) {}
+  try { if (typeof renderTafelsOverzicht === 'function') renderTafelsOverzicht(); } catch(e) {}
+  try { if (typeof renderDrinksTafels === 'function') renderDrinksTafels(); } catch(e) {}
+})();
+
 
 </script>
 </body>
