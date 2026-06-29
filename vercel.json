@@ -6,6 +6,10 @@
       "dest": "/draaiboek.js"
     },
     {
+      "src": "/dieet",
+      "dest": "/dieet.html"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },

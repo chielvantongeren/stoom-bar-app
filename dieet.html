@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Dieetwensen — De Werkplaats</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --line:#2a2e38; --txt:#f2f4f8; --mut:#9aa3b2; --acc:#25d366; --accd:#1ebe5a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  .wrap { max-width:520px; margin:0 auto; padding:24px 18px 40px; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  .sub { color:var(--mut); font-size:14px; margin:0 0 20px; line-height:1.4; }
+  .field { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:14px; display:flex; flex-direction:column; gap:6px; }
+  .field label { color:var(--mut); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+  input[type=date], input[type=text] { background:#0f1115; border:1px solid var(--line); color:var(--txt); border-radius:10px; padding:11px 12px; font-size:16px; width:100%; }
+  .opties { margin-top:8px; }
+  .optie { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:10px; transition:border-color .15s; }
+  .optie.actief { border-color:var(--acc); }
+  .optie-left { display:flex; align-items:center; gap:12px; }
+  .optie-label { font-size:16px; }
+  /* toggle */
+  .toggle { position:relative; width:46px; height:28px; flex:0 0 auto; }
+  .toggle input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; inset:0; background:#2a2e38; border-radius:999px; transition:.2s; }
+  .slider:before { content:""; position:absolute; width:22px; height:22px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
+  .toggle input:checked + .slider { background:var(--acc); }
+  .toggle input:checked + .slider:before { transform:translateX(18px); }
+  /* stepper, alleen zichtbaar als toggle aan */
+  .stepper { display:none; align-items:center; gap:8px; }
+  .optie.actief .stepper { display:flex; }
+  .step { width:36px; height:36px; border-radius:10px; border:1px solid var(--line); background:#0f1115; color:var(--txt); font-size:22px; line-height:1; cursor:pointer; }
+  .step:active { background:#232733; }
+  .aantal { width:48px; height:36px; text-align:center; background:#0f1115; border:1px solid var(--line); color:var(--txt); border-radius:10px; font-size:17px; -moz-appearance:textfield; }
+  .aantal::-webkit-outer-spin-button, .aantal::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .send { width:100%; margin-top:22px; padding:16px; border:none; border-radius:14px; background:var(--acc); color:#06210f; font-size:17px; font-weight:700; cursor:pointer; }
+  .send:disabled { background:#2a2e38; color:#6b7280; cursor:not-allowed; }
+  .send:active:not(:disabled) { background:var(--accd); }
+  .hint { color:var(--mut); font-size:13px; text-align:center; margin-top:12px; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Dieetwensen</h1>
+  <p class="sub">Zet aan wat van toepassing is en geef het aantal personen door. Je verstuurt het overzicht via WhatsApp.</p>
+
+  <div class="field">
+    <label for="datum">Datum</label>
+    <input type="date" id="datum">
+  </div>
+
+  <div class="field">
+    <label for="naam">Naam / gezelschap (optioneel)</label>
+    <input type="text" id="naam" placeholder="bijv. Familie de Vries" autocomplete="off">
+  </div>
+
+  <div class="opties" id="opties"></div>
+
+  <button id="send" class="send" disabled>Verstuur via WhatsApp</button>
+  <p class="hint">Er opent een WhatsApp-bericht dat je alleen nog hoeft te versturen.</p>
+</div>
+
+<script>
+  var PHONE = "31614468182";
+  var OPTIES = ["Vegetarisch","Veganistisch","Glutenvrij","Lactosevrij","Notenallergie","Halal"];
+
+  // datum op vandaag zetten
+  document.getElementById('datum').value = new Date().toISOString().slice(0,10);
+
+  // opties opbouwen
+  var cont = document.getElementById('opties');
+  OPTIES.forEach(function(opt, i){
+    var row = document.createElement('div');
+    row.className = 'optie';
+    row.innerHTML =
+      '<div class="optie-left">' +
+        '<label class="toggle"><input type="checkbox" id="t-'+i+'"><span class="slider"></span></label>' +
+        '<span class="optie-label">'+opt+'</span>' +
+      '</div>' +
+      '<div class="stepper">' +
+        '<button type="button" class="step" data-i="'+i+'" data-d="-1" aria-label="minder">−</button>' +
+        '<input type="number" id="a-'+i+'" class="aantal" min="1" max="99" value="1" inputmode="numeric">' +
+        '<button type="button" class="step" data-i="'+i+'" data-d="1" aria-label="meer">+</button>' +
+      '</div>';
+    cont.appendChild(row);
+  });
+
+  function actief(i){ return document.getElementById('t-'+i).checked; }
+  function aantal(i){ var n=parseInt(document.getElementById('a-'+i).value,10); return isNaN(n)||n<1?1:(n>99?99:n); }
+  function setAantal(i,n){ document.getElementById('a-'+i).value = n<1?1:(n>99?99:n); }
+
+  document.querySelectorAll('#opties .toggle input').forEach(function(cb, i){
+    cb.addEventListener('change', function(){
+      cb.closest('.optie').classList.toggle('actief', cb.checked);
+      refresh();
+    });
+  });
+  document.querySelectorAll('.step').forEach(function(b){
+    b.addEventListener('click', function(){
+      var i=parseInt(b.dataset.i,10), d=parseInt(b.dataset.d,10);
+      setAantal(i, aantal(i)+d);
+    });
+  });
+
+  function aantalActief(){ var c=0; for(var i=0;i<OPTIES.length;i++){ if(actief(i)) c++; } return c; }
+  function refresh(){ document.getElementById('send').disabled = aantalActief()===0; }
+
+  document.getElementById('send').addEventListener('click', function(){
+    var regels=[], totaal=0;
+    for(var i=0;i<OPTIES.length;i++){
+      if(actief(i)){ var n=aantal(i); regels.push('- '+OPTIES[i]+': '+n); totaal+=n; }
+    }
+    if(!regels.length) return;
+    var datum=document.getElementById('datum').value;
+    var naam=document.getElementById('naam').value.trim();
+    var msg='Dieetwensen — De Werkplaats';
+    if(datum) msg+='\nDatum: '+datum;
+    if(naam) msg+='\nNaam: '+naam;
+    msg+='\n\n'+regels.join('\n');
+    msg+='\n\nTotaal: '+totaal+' persoon(en)';
+    window.location.href='https://wa.me/'+PHONE+'?text='+encodeURIComponent(msg);
+  });
+</script>
+</body>
+</html>
