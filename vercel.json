@@ -6,8 +6,8 @@
       "dest": "/draaiboek.js"
     },
     {
-      "src": "/dieet",
-      "dest": "/dieet.html",
+      "src": "/welkom",
+      "dest": "/welkom.html",
       "headers": {
         "Cache-Control": "no-cache, no-store, must-revalidate"
       }
