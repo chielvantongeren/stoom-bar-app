@@ -1219,8 +1219,10 @@ function buildChecklist(){
     const sKey=section.replace(/\W+/g,'_');
     html+=`<div class="check-section"><div class="cs-header"><span>${section}</span><span class="cs-prog" id="prog-${sKey}">0/${items.length}</span></div>`;
     items.forEach((item,i)=>{
-      const id=sKey+'_'+i;checkState[id]=false;
-      html+=`<div class="ci" onclick="toggleCheck('${id}','${section}')"><div class="cbox" id="box-${id}"></div><span class="clbl" id="lbl-${id}">${item}</span></div>`;
+      const id=sKey+'_'+i;
+      if(checkState[id]===undefined) checkState[id]=false;
+      const _on=checkState[id];
+      html+=`<div class="ci" onclick="toggleCheck('${id}','${section}')"><div class="cbox${_on?' chk':''}" id="box-${id}"></div><span class="clbl${_on?' done':''}" id="lbl-${id}">${item}</span></div>`;
     });
     html+='</div>';
   });
@@ -1233,7 +1235,20 @@ function toggleCheck(id,section){
   document.getElementById('box-'+id).classList.toggle('chk',checkState[id]);
   document.getElementById('lbl-'+id).classList.toggle('done',checkState[id]);
   updateSectionProg(section);
+  saveChecklist();
 }
+
+function saveChecklist(){
+  try { localStorage.setItem('stoom_checklist', JSON.stringify(checkState)); } catch(e) {}
+}
+
+function loadChecklist(){
+  try {
+    var s=JSON.parse(localStorage.getItem('stoom_checklist')||'{}');
+    Object.keys(s).forEach(function(k){ checkState[k]=!!s[k]; });
+  } catch(e) {}
+}
+
 
 function updateSectionProg(section){
   const items=checklist[section];let done=0;
@@ -1264,7 +1279,7 @@ function resetChecklist(){
     const b=document.getElementById('box-'+id);const l=document.getElementById('lbl-'+id);
     if(b)b.classList.remove('chk');if(l)l.classList.remove('done');
   });
-  updateAllProg();showToast('✓ Checklist gereset');
+  updateAllProg();saveChecklist();showToast('✓ Checklist gereset');
 }
 
 // MOLLIE + QR
@@ -1773,6 +1788,7 @@ document.addEventListener('click', function(e) {
 (function herstelStaat() {
   try { if (typeof loadTafels === 'function') loadTafels(); } catch(e) {}
   try { if (typeof loadFields === 'function') loadFields(); } catch(e) {}
+  try { if (typeof loadChecklist === 'function') loadChecklist(); } catch(e) {}
   try { if (typeof renderTafelsOverzicht === 'function') renderTafelsOverzicht(); } catch(e) {}
   try { if (typeof renderDrinksTafels === 'function') renderDrinksTafels(); } catch(e) {}
 })();
