@@ -669,10 +669,22 @@ let miceConnected = false;
 // ============================================================
 // MICE API FUNCTIES
 // ============================================================
-async function miceGet(endpoint) {
-  const res = await fetch(`${API_BASE}${endpoint}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+async function miceGet(endpoint, timeoutMs) {
+  var ctrl = null, timer = null;
+  if (timeoutMs && typeof AbortController !== 'undefined') {
+    ctrl = new AbortController();
+    timer = setTimeout(function(){ ctrl.abort(); }, timeoutMs);
+  }
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, ctrl ? {signal: ctrl.signal} : undefined);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch(e) {
+    if (e && e.name === 'AbortError') throw new Error('TIMEOUT');
+    throw e;
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function micePost(endpoint, body) {
@@ -700,7 +712,15 @@ async function initialiseerMice(poging) {
   try {
     const nu = new Date();
     const vandaag = nu.getFullYear()+'-'+String(nu.getMonth()+1).padStart(2,'0')+'-'+String(nu.getDate()).padStart(2,'0');
-    const data = await miceGet(`/reservations?date=${vandaag}`);
+    var traagTimer = setTimeout(function(){
+      setMiceStatus('loading', 'MICE reageert traag — even geduld...');
+    }, 6000);
+    var data;
+    try {
+      data = await miceGet(`/reservations?date=${vandaag}`, 60000);
+    } finally {
+      clearTimeout(traagTimer);
+    }
     miceConnected = true;
     setMiceStatus('ok', 'Verbonden ✓');
 
@@ -746,14 +766,14 @@ async function initialiseerMice(poging) {
     var m = String(err && err.message || '');
     var code = (m.match(/HTTP (\d+)/) || [])[1];
     var sleutelFout = (code === '401' || code === '403');
-    var wachttijden = [2000, 5000, 10000];   // 4 pogingen totaal
+    var wachttijden = [5000, 15000, 30000];   // 4 pogingen totaal, rustig opbouwend
     if(!sleutelFout && poging <= wachttijden.length) {
       setMiceStatus('loading', 'MICE nog niet bereikbaar — opnieuw proberen...');
       console.warn('MICE init poging ' + poging + ' mislukt (' + m + '), opnieuw over ' + (wachttijden[poging-1]/1000) + 's');
       setTimeout(function(){ initialiseerMice(poging + 1); }, wachttijden[poging - 1]);
       return;
     }
-    setMiceStatus('err', sleutelFout ? 'Niet verbonden — check API key' : 'MICE niet bereikbaar');
+    setMiceStatus('err', sleutelFout ? 'Niet verbonden — check API key' : (m === 'TIMEOUT' ? 'MICE reageert niet (time-out)' : 'MICE niet bereikbaar'));
     console.warn('MICE init fout:', m);
   }
 }
