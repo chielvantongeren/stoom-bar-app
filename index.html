@@ -694,8 +694,9 @@ function setMiceStatus(status, text) {
   if(detail) detail.textContent = text;
 }
 
-async function initialiseerMice() {
-  setMiceStatus('loading', 'MICE verbinden...');
+async function initialiseerMice(poging) {
+  poging = poging || 1;
+  setMiceStatus('loading', poging > 1 ? 'MICE verbinden... (poging '+poging+')' : 'MICE verbinden...');
   try {
     const nu = new Date();
     const vandaag = nu.getFullYear()+'-'+String(nu.getMonth()+1).padStart(2,'0')+'-'+String(nu.getDate()).padStart(2,'0');
@@ -725,6 +726,13 @@ async function initialiseerMice() {
       select.style.display = '';
       loadBtn.style.display = '';
       setMiceStatus('ok', `Verbonden · ${items.length} event(s) vandaag`);
+      // Precies 1 bevestigd event vandaag: automatisch selecteren en laden,
+      // maar alleen als er nog geen klantnaam is ingevuld (niets overschrijven).
+      var klantVeld = document.getElementById('klant');
+      if(items.length === 1 && klantVeld && !klantVeld.value.trim()) {
+        select.value = items[0].id;
+        try { laadReservering(); } catch(e) { console.warn('auto-laden mislukt:', e); }
+      }
     } else {
       setMiceStatus('ok', 'Verbonden · Geen events vandaag');
       // Toon select wel zodat gebruiker kan zien dat er niks is
@@ -735,8 +743,18 @@ async function initialiseerMice() {
 
   } catch(err) {
     miceConnected = false;
-    setMiceStatus('err', 'Niet verbonden — check API key');
-    console.warn('MICE init fout:', err.message);
+    var m = String(err && err.message || '');
+    var code = (m.match(/HTTP (\d+)/) || [])[1];
+    var sleutelFout = (code === '401' || code === '403');
+    var wachttijden = [2000, 5000, 10000];   // 4 pogingen totaal
+    if(!sleutelFout && poging <= wachttijden.length) {
+      setMiceStatus('loading', 'MICE nog niet bereikbaar — opnieuw proberen...');
+      console.warn('MICE init poging ' + poging + ' mislukt (' + m + '), opnieuw over ' + (wachttijden[poging-1]/1000) + 's');
+      setTimeout(function(){ initialiseerMice(poging + 1); }, wachttijden[poging - 1]);
+      return;
+    }
+    setMiceStatus('err', sleutelFout ? 'Niet verbonden — check API key' : 'MICE niet bereikbaar');
+    console.warn('MICE init fout:', m);
   }
 }
 
