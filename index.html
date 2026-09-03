@@ -742,55 +742,6 @@ async function initialiseerMice() {
 
 function stripHtml(html){var t=document.createElement('div');t.innerHTML=html||'';return t.textContent||t.innerText||'';}
 function bepaalType(naam){naam=(naam||'').toLowerCase();if(naam.includes('ontvangst')||naam.includes('welkom'))return 'ontvangst';if(naam.includes('pauze')||naam.includes('break')||naam.includes('koffie'))return 'pauze';if(naam.includes('lunch'))return 'lunch';if(naam.includes('diner')||naam.includes('dinner'))return 'diner';return 'programma';}
-function laadAfsprakenVanMice(activities){
-  if(!activities||!activities.length) return;
-  // Verzamel alle productnamen uit alle activiteiten
-  var producten = [];
-  activities.forEach(a => {
-    (a.products||[]).forEach(p => producten.push({naam:(p.name||'').toLowerCase().trim(), qty:p.amount||1}));
-  });
-
-  // Koppel productnamen aan afspraken toggles
-  producten.forEach(p => {
-    var n = p.naam;
-    if(n.includes('prosecco')||n.includes('bubbel')||n.includes('champagne')||n.includes('welkomst')) {
-      af.prosecco = true;
-    }
-    if(n.includes('nootje')||n.includes('zoutje')) {
-      af.nootjes = true;
-    }
-    if(n.includes('olijf')||n.includes('kaas')) {
-      af.olijven = true;
-    }
-    if(n.includes('bitter')||n.includes('bittergarnituur')) {
-      af.bitter = Math.max(af.bitter, 1);
-    }
-    if(n.includes('koude hapje')||n.includes('koude luxe')) {
-      af.koude = Math.max(af.koude, 1);
-    }
-    if(n.includes('eind snack')||n.includes('eindsnack')||n.includes('avondsnack')) {
-      af.eindsnack = true;
-    }
-  });
-
-  // Update de UI
-  ['prosecco','nootjes','olijven'].forEach(k => {
-    var tog = document.getElementById('tog-'+k);
-    if(tog) tog.classList.toggle('on', af[k]);
-  });
-  // Bitter aantal
-  if(af.bitter > 0) {
-    var bitterEl = document.getElementById('bitter-count');
-    if(bitterEl) bitterEl.textContent = af.bitter;
-  }
-  // Koude hapjes
-  if(af.koude > 0) {
-    var koudeEl = document.getElementById('koude-count');
-    if(koudeEl) koudeEl.textContent = af.koude;
-  }
-  updateSummary();
-  showToast('✓ Afspraken geladen uit MICE');
-}
 
 function laadAfsprakenVanMice(activities){
   if(!activities||!activities.length)return;
@@ -956,6 +907,20 @@ async function stuurNaarMice() {
     if(ok > 0 && err === 0) {
       showToast(`✓ ${ok} product(en) toegevoegd aan MICE!`);
       btn.textContent = '✓ Opgeslagen in MICE';
+      // Ronde afgerond: tellers wissen zodat de volgende bestelling schoon start
+      Object.keys(counts).forEach(function(k){
+        counts[k] = 0;
+        var el = document.getElementById('cnt-' + k);
+        if (el) el.textContent = '0';
+      });
+      try { hist.length = 0; } catch(e) {}
+      if (typeof updateTotals === 'function') updateTotals();
+      if (typeof updateSummary === 'function') updateSummary();
+      // Knop weer vrijgeven voor een volgende ronde
+      setTimeout(function(){
+        btn.textContent = '🔗 Opslaan in MICE';
+        btn.disabled = false;
+      }, 1500);
     } else if(ok > 0 && err > 0) {
       showToast(`✓ ${ok} ok · ⚠️ ${err} mislukt`);
       btn.textContent = '⚠️ Deels opgeslagen';
@@ -1445,34 +1410,6 @@ let tafels = []; // [{id, naam, regels:[{key,label,qty,price}], gesloten, timest
 let activeBonId = null;
 let bonCounts = {};
 
-function renderTafelsOverzicht() {
-  var tegels = document.getElementById('tafels-tegels');
-  if (!tegels) return;
-  var open = tafels.filter(function(t){ return !t.gesloten; });
-  var gesloten = tafels.filter(function(t){ return t.gesloten; });
-  // Nieuwe tafel tegel altijd eerst (vaste plek linksboven)
-  var html = '<div onclick="openNieuweTafelForm()" style="background:var(--bg2);border:1.5px dashed var(--gold);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;">' +
-    '<div style="font-size:28px;color:var(--gold);">+</div>' +
-    '<div style="font-family:Oswald,sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);">Nieuwe tafel</div>' +
-  '</div>';
-  open.forEach(function(t) {
-    var tot = bonTotaal(t);
-    html += '<div onclick="openBon(' + t.id + ')" style="background:var(--bg3);border:2px solid var(--gold);border-radius:12px;padding:14px;cursor:pointer;min-height:90px;display:flex;flex-direction:column;justify-content:space-between;">' +
-      '<div style="font-family:Oswald,sans-serif;font-size:15px;color:var(--text);font-weight:600;">' + t.naam + '</div>' +
-      '<div style="font-size:11px;color:var(--dimmed);margin-top:4px;">' + t.regels.length + ' item(s) · ' + t.tijd + '</div>' +
-      '<div style="font-family:Oswald,sans-serif;font-size:20px;color:var(--gold);margin-top:8px;">€ ' + tot.toFixed(2).replace('.',',') + '</div>' +
-    '</div>';
-  });
-  gesloten.forEach(function(t) {
-    var tot = bonTotaal(t);
-    html += '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:14px;opacity:.5;min-height:90px;display:flex;flex-direction:column;justify-content:space-between;">' +
-      '<div style="font-family:Oswald,sans-serif;font-size:15px;color:var(--dimmed);">' + t.naam + '</div>' +
-      '<div style="font-size:11px;color:var(--dimmed);margin-top:4px;">Afgesloten</div>' +
-      '<div style="font-family:Oswald,sans-serif;font-size:20px;color:var(--dimmed);margin-top:8px;">€ ' + tot.toFixed(2).replace('.',',') + '</div>' +
-    '</div>';
-  });
-  tegels.innerHTML = html;
-}
 
 function bonTotaal(bon) {
   return bon.regels.reduce((sum, r) => sum + (r.qty * r.price), 0);
@@ -1501,21 +1438,6 @@ function maakNieuweBon() {
   openBon(bon.id);
 }
 
-function openBon(id) {
-  activeBonId = id;
-  bonCounts = {};
-  const bon = tafels.find(t => t.id === id);
-  if (!bon) return;
-
-  document.getElementById('tafels-overzicht').style.display = 'none';
-  document.getElementById('tafels-nieuw').style.display = 'none';
-  document.getElementById('tafels-bon').style.display = 'block';
-  document.getElementById('bon-titel').textContent = bon.naam;
-
-  // Drink grid verwijderd - bestelling via hoofdmenu
-
-  renderBonRegels(bon);
-}
 
 function bonTap(key, dir) {
   bonCounts[key] = Math.max(0, (bonCounts[key] || 0) + dir);
@@ -1566,21 +1488,7 @@ function renderBonRegels(bon) {
   badge.textContent = '€ ' + totaal.toFixed(2).replace('.', ',');
 }
 
-function sluitBon() {
-  activeBonId = null;
-  document.getElementById('tafels-bon').style.display = 'none';
-  document.getElementById('tafels-overzicht').style.display = 'block';
-  renderTafelsOverzicht();
-}
 
-function sluitBonAf() {
-  const bon = tafels.find(t => t.id === activeBonId);
-  if (!bon) return;
-  bon.gesloten = true;
-  saveTafels();
-  showToast('✓ Bon afgesloten');
-  sluitBon();
-}
 
 async function bonOpslaan() {
   const bon = tafels.find(t => t.id === activeBonId);
