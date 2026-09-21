@@ -25,7 +25,7 @@
 
   /* MENU TILES */
   .tile{display:flex;align-items:center;gap:14px;width:100%;text-align:left;cursor:pointer;
-    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    background:var(--card);border:1px solid var(--border);border-radius:16px;text-decoration:none;
     padding:16px 16px;margin-bottom:13px;color:var(--text);transition:border-color .15s,transform .05s;}
   .tile:active{transform:scale(.99);}
   .tile:hover{border-color:var(--gold);}
@@ -142,6 +142,12 @@
       <span class="tile-txt"><span class="tile-title">Dieetwensen</span><span class="tile-desc">Doorgeven voor de cateraar</span></span>
       <span class="tile-arrow">›</span>
     </button>
+
+    <a class="tile" href="https://tinyurl.com/widget-aanvraag" target="_blank" rel="noopener">
+      <span class="tile-ic"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 00-2 2v13a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2zm0 15H5V9h14v10zm-6-6h-2v2H9v2h2v2h2v-2h2v-2h-2v-2z"/></svg></span>
+      <span class="tile-txt"><span class="tile-title">Event samenstellen</span><span class="tile-desc">Stel je aanvraag online samen</span></span>
+      <span class="tile-arrow">›</span>
+    </a>
   </div>
 
   <!-- ================= WIFI ================= -->
@@ -230,7 +236,7 @@
     document.querySelectorAll('.view').forEach(function(v){ v.hidden = (v.id !== 'view-' + id); });
     window.scrollTo(0, 0);
   }
-  document.querySelectorAll('.tile').forEach(function(t){
+  document.querySelectorAll('.tile[data-target]').forEach(function(t){
     t.addEventListener('click', function(){ toon(t.dataset.target); });
   });
   document.querySelectorAll('[data-back]').forEach(function(b){
