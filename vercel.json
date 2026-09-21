@@ -6,6 +6,13 @@
       "dest": "/draaiboek.js"
     },
     {
+      "src": "/sabine.vcf",
+      "dest": "/sabine.vcf",
+      "headers": {
+        "Content-Type": "text/vcard; charset=utf-8"
+      }
+    },
+    {
       "src": "/welkom",
       "dest": "/welkom.html",
       "headers": {
